@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Paleta Equatorial / EQT Lab — tokens semânticos trocados pelo tema */
+:root {
+  --bg: #f4f5fb;
+  --card: #ffffff;
+  --sunken: #f4f5fb;
+  --line: #e2e4f0;
+  --ink: #14174f;
+  --muted: #5a5f86;
+  --heading: #1e2273;
+  --primary: #280f91;
+  --primary-hover: #1e2273;
+  --on-primary: #ffffff;
+  --link: #280f91;
+  --chrome: #1e2273;
+  --chrome-2: #280f91;
+  --chrome-line: #1e2273;
+  --tint-cyan: #eaf9ff;
+  --tint-cyan-ink: #0b5c7a;
+  --tint-purple: #f1e8fc;
+  --tint-purple-ink: #7c3cb8;
+  --tint-navy: #e8e9f7;
+  --tint-navy-ink: #1e2273;
+  --tint-risk: #fdf0ec;
+  --tint-risk-ink: #a3361f;
+  --selected: #eeeafb;
+  --radar-grid: #e2e4f0;
+  --radar-now: #280f91;
+  --radar-before: #9a9ec4;
+}
+
+.dark {
+  --bg: #0b0d33;
+  --card: #161a52;
+  --sunken: #0f1240;
+  --line: #2a2f7a;
+  --ink: #eef0ff;
+  --muted: #a9addb;
+  --heading: #ffffff;
+  --primary: #61d6ff;
+  --primary-hover: #a8e9ff;
+  --on-primary: #0b0d33;
+  --link: #61d6ff;
+  --chrome: #11144a;
+  --chrome-2: #1a1d5c;
+  --chrome-line: #2a2f7a;
+  --tint-cyan: #0f3550;
+  --tint-cyan-ink: #61d6ff;
+  --tint-purple: #2e1f6b;
+  --tint-purple-ink: #d5b5f5;
+  --tint-navy: #232870;
+  --tint-navy-ink: #c9ccf5;
+  --tint-risk: #43202b;
+  --tint-risk-ink: #ff9f8a;
+  --selected: #1f2470;
+  --radar-grid: #2a2f7a;
+  --radar-now: #61d6ff;
+  --radar-before: #a9addb;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-heading: var(--heading);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-link: var(--link);
+  --color-chrome: var(--chrome);
+  --color-chrome-2: var(--chrome-2);
+  --color-chrome-line: var(--chrome-line);
+  --color-tint-cyan: var(--tint-cyan);
+  --color-tint-cyan-ink: var(--tint-cyan-ink);
+  --color-tint-purple: var(--tint-purple);
+  --color-tint-purple-ink: var(--tint-purple-ink);
+  --color-tint-navy: var(--tint-navy);
+  --color-tint-navy-ink: var(--tint-navy-ink);
+  --color-tint-risk: var(--tint-risk);
+  --color-tint-risk-ink: var(--tint-risk-ink);
+  --color-selected: var(--selected);
+
+  /* Cores fixas da marca */
+  --color-navy: #1e2273;
+  --color-violeta: #280f91;
+  --color-ciano: #61d6ff;
+  --color-lilas: #c399eb;
+  --color-roxo: #a455ee;
+  --color-roxo-escuro: #7c3cb8;
+  --color-noite: #0b0d33;
+
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-display: var(--font-saira), var(--font-figtree), sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 3px solid #61d6ff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

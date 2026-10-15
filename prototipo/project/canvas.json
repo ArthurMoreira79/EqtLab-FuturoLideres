@@ -1,0 +1,47 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Main.dc.html": {"expand": "fill", "h": 1180, "is_interactive": true, "title": "Home — desktop", "w": 1440, "x": 0, "y": 30},
+    "Diagnostico.dc.html": {"h": 844, "is_interactive": true, "title": "1 · Diagnóstico", "w": 390, "x": 0, "y": 1520},
+    "Resultado.dc.html": {"h": 844, "is_interactive": true, "title": "2 · Resultado do perfil", "w": 390, "x": 470, "y": 1520},
+    "Missao.dc.html": {"h": 844, "is_interactive": true, "title": "3 · Missão do dia", "w": 390, "x": 940, "y": 1520},
+    "Feedback.dc.html": {"h": 844, "is_interactive": true, "title": "4 · Feedback da IA", "w": 390, "x": 1410, "y": 1520},
+    "Trilha.dc.html": {"h": 844, "is_interactive": true, "title": "5 · Trilha", "w": 390, "x": 1880, "y": 1520},
+    "Comunidade.dc.html": {"h": 844, "is_interactive": true, "title": "6 · Comunidade", "w": 390, "x": 2350, "y": 1520},
+    "MainEscuro.dc.html": {"expand": "fill", "h": 1180, "is_interactive": true, "title": "Home — desktop · escuro", "w": 1440, "x": 1520, "y": 30},
+    "DiagnosticoEscuro.dc.html": {"h": 844, "is_interactive": true, "title": "1 · Diagnóstico · escuro", "w": 390, "x": 0, "y": 2760},
+    "ResultadoEscuro.dc.html": {"h": 844, "is_interactive": true, "title": "2 · Resultado · escuro", "w": 390, "x": 470, "y": 2760},
+    "MissaoEscuro.dc.html": {"h": 844, "is_interactive": true, "title": "3 · Missão · escuro", "w": 390, "x": 940, "y": 2760},
+    "FeedbackEscuro.dc.html": {"h": 844, "is_interactive": true, "title": "4 · Feedback · escuro", "w": 390, "x": 1410, "y": 2760},
+    "TrilhaEscuro.dc.html": {"h": 844, "is_interactive": true, "title": "5 · Trilha · escuro", "w": 390, "x": 1880, "y": 2760},
+    "ComunidadeEscuro.dc.html": {"h": 844, "is_interactive": true, "title": "6 · Comunidade · escuro", "w": 390, "x": 2350, "y": 2760}
+  },
+  "createdOnFiles": {"at": "2026-10-13T12:00:00Z", "v": 1},
+  "designSystems": [],
+  "launch": {"view": "canvas"},
+  "notes": {
+    "t1": {"kind": "title1", "maxW": 1440, "text": "Home (desktop)", "w": 240, "x": 0, "y": -260},
+    "t2": {"kind": "title1", "maxW": 2740, "text": "Fluxo mobile da demo", "w": 240, "x": 0, "y": 1260},
+    "t3": {"kind": "title1", "maxW": 2740, "text": "Fluxo mobile · tema escuro", "w": 240, "x": 0, "y": 2500},
+    "t4": {"kind": "title1", "maxW": 1440, "text": "Home (desktop) · tema escuro", "w": 240, "x": 1520, "y": -260}
+  },
+  "order": [
+    "Main.dc.html",
+    "Diagnostico.dc.html",
+    "Resultado.dc.html",
+    "Missao.dc.html",
+    "Feedback.dc.html",
+    "Trilha.dc.html",
+    "Comunidade.dc.html",
+    "MainEscuro.dc.html",
+    "DiagnosticoEscuro.dc.html",
+    "ResultadoEscuro.dc.html",
+    "MissaoEscuro.dc.html",
+    "FeedbackEscuro.dc.html",
+    "TrilhaEscuro.dc.html",
+    "ComunidadeEscuro.dc.html"
+  ],
+  "pages": [],
+  "title": "Futuro Líderes — Protótipo"
+}

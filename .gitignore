@@ -1,0 +1,7 @@
+# Configurações locais do Claude Code / editores
+.claude/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# O site tem o próprio .gitignore (node_modules, .next, .env*...) em site/
