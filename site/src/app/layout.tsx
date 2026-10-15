@@ -1,20 +1,13 @@
 import type { Metadata } from "next";
-import { Figtree, Saira } from "next/font/google";
 import { Providers } from "@/components/Providers";
+// Fontes empacotadas no projeto (sem download do Google Fonts durante o build).
+import "@fontsource/figtree/400.css";
+import "@fontsource/figtree/500.css";
+import "@fontsource/figtree/600.css";
+import "@fontsource/figtree/700.css";
+import "@fontsource/saira/700-italic.css";
+import "@fontsource/saira/800-italic.css";
 import "./globals.css";
-
-const figtree = Figtree({
-  variable: "--font-figtree",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const saira = Saira({
-  variable: "--font-saira",
-  subsets: ["latin"],
-  style: ["italic"],
-  weight: ["700", "800"],
-});
 
 export const metadata: Metadata = {
   title: "Futuro Líderes · EQT Lab",
@@ -27,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${figtree.variable} ${saira.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body className="min-h-full font-sans">
         <Providers>{children}</Providers>

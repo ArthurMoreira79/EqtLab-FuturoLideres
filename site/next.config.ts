@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
     instantInsights: { validationLevel: "manual-warning" },
   },
   turbopack: {
+    // O app fica na subpasta site/ do repositório: fixa a raiz aqui para o build
+    // (na Vercel) não subir para a raiz do repositório.
+    root: __dirname,
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

@@ -95,8 +95,8 @@
   --color-roxo-escuro: #7c3cb8;
   --color-noite: #0b0d33;
 
-  --font-sans: var(--font-figtree), system-ui, sans-serif;
-  --font-display: var(--font-saira), var(--font-figtree), sans-serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
+  --font-display: "Saira", "Figtree", sans-serif;
 }
 
 body {
