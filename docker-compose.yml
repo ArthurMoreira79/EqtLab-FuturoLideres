@@ -1,0 +1,26 @@
+name: futuro-lideres
+
+services:
+  postgres:
+    # A Bitnami moveu as tags versionadas para o namespace "bitnamilegacy" (set/2025).
+    # No namespace "bitnami" só restou a tag `latest`, que muda sem aviso, então fixamos a versão aqui.
+    image: bitnamilegacy/postgresql:17.6.0-debian-12-r4
+    container_name: futuro-lideres-db
+    restart: unless-stopped
+    ports:
+      # Só o seu computador enxerga o banco.
+      - "127.0.0.1:${POSTGRES_PORT:-5434}:5432"
+    environment:
+      POSTGRESQL_USERNAME: ${POSTGRES_USER:-futuro}
+      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-futuro_dev}
+      POSTGRESQL_DATABASE: ${POSTGRES_DB:-futuro_lideres}
+    volumes:
+      - postgres_data:/bitnami/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRESQL_USERNAME} -d $${POSTGRESQL_DATABASE}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
