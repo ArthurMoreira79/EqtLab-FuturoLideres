@@ -1,20 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Aviso, TituloPagina, botao, cx } from "@/components/ui";
 import { api } from "@/lib/api";
+import { AREA_INICIAL } from "@/lib/areas";
+import { useAreas } from "@/lib/areas-cliente";
 import { COMPETENCIAS } from "@/lib/competencias";
 import { useEstado } from "@/lib/estado";
 import type { CompetenciaSlug, PostForum } from "@/lib/types";
 
 const campo = "w-full rounded-xl border border-line bg-card px-4 focus:border-primary";
 
-export default function NovaPergunta() {
+export default function Pagina() {
+  return (
+    <Suspense>
+      <NovaPergunta />
+    </Suspense>
+  );
+}
+
+function NovaPergunta() {
   const estado = useEstado();
   const router = useRouter();
+  const areas = useAreas();
+  const [areaEscolhida, setAreaEscolhida] = useState<string | null>(null);
+  const areaDaUrl = useSearchParams().get("area");
+  const area = areaEscolhida ?? (areas.some((a) => a.slug === areaDaUrl) ? areaDaUrl! : AREA_INICIAL);
   const [tags, setTags] = useState<CompetenciaSlug[]>([]);
   const [anonimo, setAnonimo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -35,6 +49,7 @@ export default function NovaPergunta() {
           corpo: f.get("corpo"),
           tags,
           anonimo,
+          area,
           autor: estado!.perfil.nome,
           setor: estado!.perfil.setor,
         }),
@@ -62,6 +77,16 @@ export default function NovaPergunta() {
         <label className="flex flex-col gap-1.5">
           <span className="font-semibold">Conte a situação</span>
           <textarea name="corpo" required minLength={20} rows={6} className={cx(campo, "py-3 leading-relaxed")} />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="font-semibold">Área da empresa</span>
+          <select value={area} onChange={(e) => setAreaEscolhida(e.target.value)} className={cx(campo, "min-h-12")}>
+            {areas.map((a) => (
+              <option key={a.slug} value={a.slug}>
+                {a.nome}
+              </option>
+            ))}
+          </select>
         </label>
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-2 font-semibold">Competências (até 3)</legend>

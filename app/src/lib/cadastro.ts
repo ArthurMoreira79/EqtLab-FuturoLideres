@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { AvatarConfig } from "@/lib/avatar";
 
 /**
  * Regras do cadastro e do login. Este arquivo é usado pelo navegador (mensagens ao digitar)
@@ -88,6 +89,8 @@ export function mensagemDoErro(erro: z.ZodError): string {
     (i) => i.code === "unrecognized_keys" || (i.code === "invalid_type" && i.path.length === 0),
   );
   if (corpoMalFormado) return "Requisição inválida.";
+  // Valor fora de uma lista fechada (ex.: peça de avatar que não existe): sem despejar a lista em inglês.
+  if (erro.issues.some((i) => i.code === "invalid_value")) return "Uma das opções escolhidas não existe.";
   return erro.issues[0]?.message ?? "Dados inválidos.";
 }
 
@@ -104,4 +107,10 @@ export function errosPorCampo(erro: z.ZodError): Record<string, string> {
 /** Usuário como o navegador enxerga (nunca inclui hash de senha). */
 export interface UsuarioPublico extends DadosCadastro {
   id: string;
+  /** Quando a conta foi criada (ISO 8601). */
+  criadoEm: string;
+  /** Emblema do perfil; null enquanto a pessoa não criou o dela. */
+  avatar: AvatarConfig | null;
+  /** "admin" pode criar salas de jogo na Comunidade. */
+  papel: "membro" | "admin";
 }

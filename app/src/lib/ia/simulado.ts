@@ -1,4 +1,5 @@
 import "server-only";
+import { MIN_PALAVRAS_RESPOSTA } from "./limites";
 import { competencia, forcasEAtencao, nivelDe, SLUGS } from "@/lib/competencias";
 import { MODULOS } from "@/lib/conteudo/modulos";
 import type { CompetenciaSlug, CriterioRubrica } from "@/lib/types";
@@ -44,11 +45,11 @@ export const provedorSimulado: ProvedorIA = {
     await new Promise((r) => setTimeout(r, 900)); // simula a latência de uma IA
 
     const palavras = resposta.trim().split(/\s+/).filter(Boolean).length;
-    if (palavras < 15) {
+    if (palavras < MIN_PALAVRAS_RESPOSTA) {
       return {
         status: "desenvolver",
         mensagem:
-          "Sua resposta ainda está curta para uma análise justa. Conte o que você faria primeiro, o que diria e como acompanharia a situação depois.",
+          `Escreva pelo menos ${MIN_PALAVRAS_RESPOSTA} palavras. Conte o que você faria primeiro, o que diria e como acompanharia a situação depois.`,
       };
     }
 

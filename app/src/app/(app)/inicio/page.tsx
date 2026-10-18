@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, Flame, Plus, RefreshCw, Target, Trophy, Zap } from "lucide-react";
+import { MinhaEquipe } from "@/components/rede/MinhaEquipe";
 import { Clara } from "@/components/jogo";
 import { CaminhoTrilha, montarUnidades } from "@/components/painel/CaminhoTrilha";
 import { BoasVindasClara } from "@/components/painel/BoasVindasClara";
@@ -129,7 +130,7 @@ function Painel({ estado }: { estado: Estado }) {
           <Constancia estado={estado} />
         </div>
         <CardComunidade estado={estado} />
-        <CardEquipe estado={estado} />
+        {estado.usuarioId ? <MinhaEquipe key={estado.usuarioId} /> : <CardEquipe estado={estado} />}
       </aside>
     </div>
   );

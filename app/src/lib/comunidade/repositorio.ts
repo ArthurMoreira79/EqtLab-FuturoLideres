@@ -12,6 +12,7 @@ function seed(): PostForum[] {
   return [
     {
       id: "p1",
+      area: "comercial",
       titulo: "Como dar feedback para alguém que era meu colega de time?",
       corpo:
         "Fui promovida há dois meses e preciso corrigir uma entrega de um amigo que agora é meu liderado. Tenho medo de estragar a amizade. Como vocês fizeram?",
@@ -42,6 +43,7 @@ function seed(): PostForum[] {
     },
     {
       id: "p2",
+      area: "operarios",
       titulo: "Dois técnicos não se falam e isso já afeta os plantões. Intervenho ou espero?",
       corpo: "A briga foi sobre troca de plantão. Já são duas semanas e eles evitam trabalhar no mesmo turno.",
       tags: ["conflitos"],
@@ -63,6 +65,7 @@ function seed(): PostForum[] {
     },
     {
       id: "p3",
+      area: "operarios",
       titulo: "Feedback corretivo em equipe de campo: presencial ou por chamada?",
       corpo: "Metade da minha equipe fica em bases diferentes. Vale a pena esperar para falar pessoalmente?",
       tags: ["feedback", "comunicacao"],
@@ -83,6 +86,7 @@ function seed(): PostForum[] {
     },
     {
       id: "p4",
+      area: "vendas",
       titulo: "Liderado reage mal a qualquer crítica. Por onde começo?",
       corpo: "Toda vez que aponto algo, ele fica na defensiva e o clima fica ruim por dias.",
       tags: ["feedback", "inteligencia_emocional"],
@@ -94,6 +98,7 @@ function seed(): PostForum[] {
     },
     {
       id: "p5",
+      area: "marketing",
       titulo: "Como vocês organizam o 1:1 com equipes grandes?",
       corpo: "Tenho 14 pessoas. Não consigo fazer 1:1 semanal com todo mundo.",
       tags: ["desenvolvimento"],
@@ -112,6 +117,71 @@ function seed(): PostForum[] {
         },
       ],
     },
+    {
+      id: "p6",
+      area: "comercial",
+      titulo: "Cliente importante reclamou do prazo na frente do meu time. Como protejo a equipe sem ser ríspido?",
+      corpo: "Foi numa reunião aberta e o tom ficou pesado. Meu time saiu desmotivado e eu não soube o que dizer na hora.",
+      tags: ["comunicacao", "inteligencia_emocional"],
+      anonimo: false,
+      autor: "Paulo V.",
+      setor: "Comercial",
+      criadoEm: horasAtras(12),
+      respostas: [
+        {
+          id: "r6",
+          autor: "Ana P.",
+          mentor: true,
+          corpo: "Assuma a conversa com o cliente no mesmo dia e, com o time, reconheça o desconforto antes de explicar o plano. Proteger não é defender tudo, é assumir a frente.",
+          uteis: 8,
+          criadoEm: horasAtras(9),
+        },
+      ],
+    },
+    {
+      id: "p7",
+      area: "vendas",
+      titulo: "A meta do mês está longe e o time se compara demais. Como motivar sem pressionar?",
+      corpo: "Quando divulgo o ranking, uns se animam e outros travam. Não quero tirar a transparência, mas também não quero criar clima ruim.",
+      tags: ["desempenho", "desenvolvimento"],
+      anonimo: true,
+      autor: "Anônimo",
+      setor: "Vendas",
+      criadoEm: horasAtras(20),
+      respostas: [],
+    },
+    {
+      id: "p8",
+      area: "marketing",
+      titulo: "Como dizer “não” a uma campanha de última hora sem desgastar a relação com outras áreas?",
+      corpo: "Chegam pedidos urgentes toda semana e a equipe já está no limite. Cada “não” vira conversa difícil.",
+      tags: ["decisao", "comunicacao"],
+      anonimo: false,
+      autor: "Débora L.",
+      setor: "Marketing",
+      criadoEm: horasAtras(26),
+      respostas: [
+        {
+          id: "r7",
+          autor: "Bruno T.",
+          corpo: "Troque o “não” por uma escolha: “consigo entregar A ou B nesse prazo, qual é mais importante para você?”. A prioridade passa a ser decisão de quem pediu.",
+          uteis: 14,
+          criadoEm: horasAtras(22),
+        },
+      ],
+    },
+    {
+      id: "p9",
+      area: "operarios",
+      titulo: "Passagem de turno sempre atrasa e o próximo turno começa no susto. O que mudar?",
+      corpo: "A equipe sai correndo e informações importantes se perdem. Já tentei cobrar, mas piora quando o tempo aperta.",
+      tags: ["delegacao", "comunicacao"],
+      anonimo: false,
+      autor: "Marcos D.",
+      setor: "Operações",
+      criadoEm: horasAtras(36),
+      respostas: [],
+    },
   ];
 }
 
@@ -119,6 +189,8 @@ const g = globalThis as unknown as { __forum?: PostForum[] };
 const posts = (): PostForum[] => (g.__forum ??= seed());
 
 export interface Filtros {
+  /** Slug da área da empresa (escudo selecionado). */
+  area?: string;
   tag?: CompetenciaSlug;
   semResposta?: boolean;
   busca?: string;
@@ -127,6 +199,7 @@ export interface Filtros {
 export function listarPosts(f: Filtros = {}): PostForum[] {
   const busca = f.busca?.toLowerCase().trim();
   return posts()
+    .filter((p) => !f.area || p.area === f.area)
     .filter((p) => !f.tag || p.tags.includes(f.tag))
     .filter((p) => !f.semResposta || p.respostas.length === 0)
     .filter((p) => !busca || `${p.titulo} ${p.corpo}`.toLowerCase().includes(busca))

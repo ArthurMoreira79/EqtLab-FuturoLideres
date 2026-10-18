@@ -14,6 +14,8 @@ const BASE_BOTAO =
 export const botao = {
   primario: `${BASE_BOTAO} bg-primary text-on-primary shadow-[0_4px_0_#0b4f91] hover:bg-primary-hover dark:shadow-[0_4px_0_#2fa6d4]`,
   secundario: `${BASE_BOTAO} border-2 border-line bg-card text-link shadow-[0_4px_0_var(--line)] hover:bg-sunken`,
+  /** Entrar em uma sala de jogo: verde, para se destacar dos botões azuis. */
+  sala: `${BASE_BOTAO} bg-[#16a34a] text-white shadow-[0_4px_0_#15803d] hover:bg-[#1fb957]`,
   destaque: `${BASE_BOTAO} bg-ciano text-noite shadow-[0_4px_0_#2fa6d4] hover:bg-[#8ee3ff]`,
   fantasma: `${BASE_BOTAO} border-2 border-lilas text-white hover:bg-white/10`,
 };

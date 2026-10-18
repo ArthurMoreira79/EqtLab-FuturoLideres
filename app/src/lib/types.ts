@@ -26,6 +26,8 @@ export interface Perfil {
   mesesLideranca: number;
   modeloTrabalho: string;
   desafios: string[];
+  /** Data de criação da conta (ISO 8601). */
+  desde?: string;
 }
 
 export interface CriterioRubrica {
@@ -144,6 +146,8 @@ export interface PostForum {
   anonimo: boolean;
   autor: string;
   setor?: string;
+  /** Slug da área da empresa (tabela `areas`) em que o tópico foi publicado. */
+  area?: string;
   criadoEm: string;
   melhorRespostaId?: string;
   respostas: RespostaForum[];

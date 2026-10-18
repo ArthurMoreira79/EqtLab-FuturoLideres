@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
+import { MIN_PALAVRAS_RESPOSTA } from "@/lib/ia/limites";
 import { api } from "@/lib/api";
 import { acoes, hoje, type Estado } from "@/lib/estado";
 import type { DesafioPublico, Submissao } from "@/lib/types";
@@ -37,6 +38,7 @@ export function RespostaDesafio({
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
+    if (enviando || palavras < MIN_PALAVRAS_RESPOSTA || (ehEscolha && opcao === undefined)) return;
     setEnviando(true);
     setAviso(null);
     try {
@@ -131,7 +133,7 @@ export function RespostaDesafio({
         />
         <span className="flex justify-between text-sm text-muted">
           <span>Não existe resposta única certa.</span>
-          <span>{palavras} palavras</span>
+          <span>{palavras} palavras · mínimo {MIN_PALAVRAS_RESPOSTA}</span>
         </span>
       </label>
 
@@ -140,7 +142,7 @@ export function RespostaDesafio({
 
       <button
         type="submit"
-        disabled={enviando || palavras < 3 || (ehEscolha ? opcao === undefined : false)}
+        disabled={enviando || palavras < MIN_PALAVRAS_RESPOSTA || (ehEscolha ? opcao === undefined : false)}
         className={cx(botao.primario, "sm:self-end")}
       >
         Enviar para análise <Sparkles aria-hidden className="size-4" />

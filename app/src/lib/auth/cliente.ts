@@ -1,4 +1,5 @@
 import type { DadosCadastro, UsuarioPublico } from "@/lib/cadastro";
+import type { AvatarConfig } from "@/lib/avatar";
 import type { DiagnosticoSalvo, RespostasDiagnostico } from "@/lib/diagnostico";
 import { acoes } from "@/lib/estado";
 
@@ -57,6 +58,9 @@ export const authApi = {
 
   ultimoDiagnostico: () => chamar<{ diagnostico: DiagnosticoSalvo | null }>("/api/diagnostico").then((r) => r.diagnostico),
 
+  salvarAvatar: (avatar: AvatarConfig) =>
+    chamar<{ ok: true }>("/api/perfil/avatar", { method: "PUT", body: JSON.stringify({ avatar }) }),
+
   eu: () => chamar<{ usuario: UsuarioPublico }>("/api/auth/eu").then((r) => r.usuario),
 };
 
@@ -72,6 +76,7 @@ export function perfilDoUsuario(u: UsuarioPublico) {
     mesesLideranca: u.mesesLideranca,
     modeloTrabalho: u.modeloTrabalho,
     desafios: [...u.desafios],
+    desde: u.criadoEm,
   };
 }
 

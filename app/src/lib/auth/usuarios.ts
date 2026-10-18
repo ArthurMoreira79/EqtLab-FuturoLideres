@@ -1,5 +1,6 @@
 import "server-only";
 import { consultar } from "@/lib/db";
+import { lerAvatar, type AvatarConfig } from "@/lib/avatar";
 import type { DadosCadastro, UsuarioPublico } from "@/lib/cadastro";
 
 export class EmailEmUso extends Error {}
@@ -16,6 +17,9 @@ interface LinhaUsuario {
   modelo_trabalho: string;
   desafios: string[];
   senha_hash: string;
+  avatar: unknown;
+  papel: string;
+  criado_em: Date;
 }
 
 function publico(u: LinhaUsuario): UsuarioPublico {
@@ -30,6 +34,9 @@ function publico(u: LinhaUsuario): UsuarioPublico {
     mesesLideranca: u.meses_lideranca,
     modeloTrabalho: u.modelo_trabalho as UsuarioPublico["modeloTrabalho"],
     desafios: u.desafios as UsuarioPublico["desafios"],
+    criadoEm: u.criado_em.toISOString(),
+    avatar: lerAvatar(u.avatar),
+    papel: u.papel === "admin" ? "admin" : "membro",
   };
 }
 
@@ -65,4 +72,8 @@ export async function criarUsuario(d: DadosCadastro, senhaHash: string): Promise
 
 export async function registrarLogin(id: string) {
   await consultar("UPDATE usuarios SET ultimo_login_em = now() WHERE id = $1", [id]);
+}
+
+export async function salvarAvatar(id: string, avatar: AvatarConfig) {
+  await consultar("UPDATE usuarios SET avatar = $2::jsonb WHERE id = $1", [id, JSON.stringify(avatar)]);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import type { AvatarConfig } from "@/lib/avatar";
 import { ordenarTrilha, SLUGS } from "@/lib/competencias";
 import type { FeedbackIA } from "@/lib/ia/schema";
 import type {
@@ -24,6 +25,8 @@ export interface Estado {
   usuarioId?: string;
   /** A pessoa já viu o tour “como funciona”. */
   tourVisto?: boolean;
+  /** Emblema do perfil (só aparece no perfil); sincronizado com a conta quando há login. */
+  avatar?: AvatarConfig;
   /** Datas (AAAA-MM-DD) em que houve atividade; alimenta o medidor de constância. */
   diasAtivos?: string[];
   perfil: Perfil;
@@ -114,7 +117,7 @@ export function diasDesde(data: string) {
   return diasEntre(data, hoje());
 }
 
-const XP = { missao: 40, desafio: 60, licao: 10, quiz: 20, diagnostico: 50 } as const;
+export const XP = { missao: 40, desafio: 60, licao: 10, quiz: 20, diagnostico: 50 } as const;
 
 function registrarDiaAtivo(e: Estado): Estado["sequencia"] {
   const dia = hoje();
@@ -175,13 +178,20 @@ export const acoes = {
    * Login: se este navegador já tem o progresso dessa mesma conta, mantém e só atualiza o perfil;
    * senão (outra conta, ou modo demonstração) começa um estado novo a partir do perfil do servidor.
    */
-  entrar(perfil: Perfil, usuarioId: string, diagnostico?: { pontuacoes: Pontuacoes; data: string } | null) {
+  entrar(
+    perfil: Perfil,
+    usuarioId: string,
+    diagnostico?: { pontuacoes: Pontuacoes; data: string } | null,
+    avatar?: AvatarConfig | null,
+  ) {
     const atual = ler();
     if (atual?.usuarioId === usuarioId && (atual.diagnostico || !diagnostico)) {
-      gravar({ ...atual, perfil });
+      // O servidor é a fonte do avatar da conta; se a conta ainda não tem, mantém o que está aqui.
+      gravar({ ...atual, perfil, avatar: avatar ?? atual.avatar });
       return;
     }
     acoes.criarConta(perfil, usuarioId);
+    if (avatar) atualizar((e) => ({ ...e, avatar }));
     // Já fez o diagnóstico em outro dispositivo: traz do servidor e pula o tour e o diagnóstico.
     if (diagnostico) {
       atualizar((e) => ({
@@ -194,6 +204,10 @@ export const acoes = {
         xp: e.xp + XP.diagnostico,
       }));
     }
+  },
+
+  salvarAvatar(avatar: AvatarConfig) {
+    atualizar((e) => ({ ...e, avatar }));
   },
 
   concluirTour() {

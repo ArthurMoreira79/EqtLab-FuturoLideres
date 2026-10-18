@@ -25,9 +25,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const caminho = usePathname();
 
   useEffect(() => {
-    if (estado === null) router.replace("/");
+    // Quem chega pelo QR code de uma sala sem estar logado entra e volta para a sala.
+    if (estado === null) router.replace(/^\/comunidade\/sala\/\d{6}$/.test(caminho) ? `/entrar?proximo=${caminho}` : "/");
     else if (estado && !estado.diagnostico) router.replace(proximaTela(estado));
-  }, [estado, router]);
+  }, [estado, router, caminho]);
 
   const ativo = (href: string) => caminho === href || caminho.startsWith(`${href}/`);
 

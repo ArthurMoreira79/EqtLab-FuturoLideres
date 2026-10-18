@@ -41,8 +41,12 @@ export default function Entrar() {
         perfilDoUsuario(usuario),
         usuario.id,
         salvo && { pontuacoes: salvo.pontuacoes, data: hoje(new Date(salvo.criadoEm)) },
+        usuario.avatar,
       );
-      router.push(proximaTela(lerEstadoAtual()));
+      const destino = proximaTela(lerEstadoAtual());
+      // Veio de um QR code de sala: só volta para lá se a conta já passou pelo tour e pelo diagnóstico.
+      const proximo = new URLSearchParams(window.location.search).get("proximo");
+      router.push(destino === "/inicio" && proximo && /^\/comunidade\/sala\/\d{6}$/.test(proximo) ? proximo : destino);
     } catch (err) {
       setErroGeral(err instanceof ErroApi ? err.message : "Algo deu errado. Tente novamente.");
       setEnviando(false);
