@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Flame, Plus, RefreshCw } from "lucide-react";
+import { ArrowRight, Flame, Plus, RefreshCw, Target, Trophy, Zap } from "lucide-react";
+import { Clara } from "@/components/jogo";
+import { CaminhoTrilha, montarUnidades } from "@/components/painel/CaminhoTrilha";
+import { Constancia } from "@/components/painel/Constancia";
 import { Radar } from "@/components/Radar";
 import {
   Aviso,
-  Barra,
   Card,
   Carregando,
   LinkAcao,
   SeloIA,
-  TagCompetencia,
   TituloSecao,
   botao,
   cx,
@@ -20,8 +21,7 @@ import {
 } from "@/components/ui";
 import { api } from "@/lib/api";
 import { competencia, forcasEAtencao } from "@/lib/competencias";
-import { MODULOS, moduloDaCompetencia, temConteudo } from "@/lib/conteudo/modulos";
-import { acoes, diasDesde, hoje, useEstado, type Estado } from "@/lib/estado";
+import { acoes, diasDesde, hoje, nivelXP, useEstado, type Estado } from "@/lib/estado";
 import { useMissaoDoDia } from "@/lib/missao/useMissaoDoDia";
 import type { PostForum } from "@/lib/types";
 
@@ -36,49 +36,99 @@ function saudacao() {
   return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
 }
 
+function Pilulas({ estado }: { estado: Estado }) {
+  const { nivel } = nivelXP(estado.xp);
+  const base = "inline-flex items-center gap-2 rounded-2xl border-2 border-line bg-card px-3.5 py-2 text-sm font-extrabold shadow-[0_3px_0_var(--line)]";
+  return (
+    <ul className="flex flex-wrap gap-2.5" aria-label="Seus números">
+      <li className={base}>
+        <Flame aria-hidden className="size-5 origin-bottom animate-chama text-[#ff8a00]" fill="currentColor" />
+        {estado.sequencia.dias} {estado.sequencia.dias === 1 ? "dia" : "dias"}
+      </li>
+      <li className={base}>
+        <Zap aria-hidden className="size-5 text-[#f5b301]" fill="currentColor" />
+        {estado.xp.toLocaleString("pt-BR")} XP
+      </li>
+      <li className={base}>
+        <Trophy aria-hidden className="size-5 text-[#1b8fe6]" />
+        Nível {nivel}
+      </li>
+    </ul>
+  );
+}
+
 function Painel({ estado }: { estado: Estado }) {
   const { perfil } = estado;
   const dataExtensa = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  const { proximo } = montarUnidades(estado);
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-muted first-letter:uppercase">{dataExtensa}</span>
-          <h1 className="font-display text-3xl font-extrabold italic text-heading sm:text-4xl">
-            {saudacao()}, {perfil.nome.split(" ")[0]}
-          </h1>
-          <span className="text-muted">
-            {perfil.cargo} · {perfil.setor} · {perfil.mesesLideranca} {perfil.mesesLideranca === 1 ? "mês" : "meses"} na
-            liderança · equipe de {perfil.tamanhoEquipe} pessoas
-          </span>
-        </div>
-        <div className="flex items-center gap-2.5 rounded-full border border-line bg-card px-4 py-2.5">
-          <Flame aria-hidden className="size-5 text-roxo" />
-          <span className="font-bold">
-            {estado.sequencia.dias} {estado.sequencia.dias === 1 ? "dia" : "dias"} seguidos
-          </span>
-          {estado.sequencia.congelada && <span className="text-xs text-muted">(1 dia congelado)</span>}
-        </div>
-      </header>
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="flex min-w-0 flex-col gap-6">
+        {/* Saudação */}
+        <section
+          aria-label="Boas-vindas"
+          className="relative isolate overflow-hidden rounded-3xl bg-[linear-gradient(120deg,#1478d0_0%,#1cb0f6_70%,#5fd0ff_100%)] p-6 text-white shadow-[0_5px_0_#0b4f91] sm:p-8"
+        >
+          <span aria-hidden className="absolute -right-10 -top-16 -z-10 size-64 rounded-full bg-white/15" />
+          <span aria-hidden className="absolute -bottom-24 right-24 -z-10 size-56 rounded-full bg-white/10" />
+          <div className="flex max-w-md flex-col gap-3 pr-0 sm:pr-40">
+            <span className="text-sm font-bold text-white/85 first-letter:uppercase">{dataExtensa}</span>
+            <h1 className="font-display text-3xl font-extrabold italic sm:text-4xl">
+              {saudacao()}, {perfil.nome.split(" ")[0]}!
+            </h1>
+            <p className="text-white/90">
+              {perfil.cargo} · {perfil.setor} · equipe de {perfil.tamanhoEquipe} pessoas
+            </p>
+            {proximo?.href && (
+              <Link
+                href={proximo.href}
+                className="mt-1 inline-flex min-h-12 items-center gap-2 self-start rounded-2xl bg-white px-5 text-sm font-extrabold uppercase tracking-wider text-[#1478d0] shadow-[0_4px_0_#9fd6f7] transition-[transform,box-shadow] active:translate-y-1 active:shadow-none"
+              >
+                Continuar trilha <ArrowRight aria-hidden className="size-5" />
+              </Link>
+            )}
+          </div>
+          <Clara pose="acenando" largura={150} className="pointer-events-none absolute -bottom-3 right-4 hidden sm:block" />
+        </section>
 
-      <CardMissao estado={estado} />
+        <div className="xl:hidden">
+          <Pilulas estado={estado} />
+        </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <TituloSecao>Radar de competências</TituloSecao>
-          <Radar
-            atual={estado.pontuacoes}
-            antes={estado.diagnostico?.pontuacoes}
-            rotulo="Radar de competências: diagnóstico inicial comparado com hoje"
-          />
-        </Card>
-        <CardRelatorio estado={estado} />
-        <CardTrilha estado={estado} />
-        <CardEquipe estado={estado} />
+        <CardMissao estado={estado} />
+
+        {/* No celular a constância vem logo após a missão; no desktop ela fica na coluna da direita */}
+        <div className="xl:hidden">
+          <Constancia estado={estado} />
+        </div>
+
+        <CaminhoTrilha estado={estado} />
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <CardRelatorio estado={estado} />
+          <Card>
+            <TituloSecao>Radar de competências</TituloSecao>
+            <Radar
+              atual={estado.pontuacoes}
+              antes={estado.diagnostico?.pontuacoes}
+              rotulo="Radar de competências: diagnóstico inicial comparado com hoje"
+            />
+          </Card>
+        </div>
       </div>
 
-      <CardComunidade estado={estado} />
+      {/* Coluna direita: números, constância, comunidade, equipe */}
+      <aside aria-label="Resumo" className="flex min-w-0 flex-col gap-6 xl:sticky xl:top-8">
+        <div className="hidden xl:block">
+          <Pilulas estado={estado} />
+        </div>
+        <div className="hidden xl:block">
+          <Constancia estado={estado} />
+        </div>
+        <CardComunidade estado={estado} />
+        <CardEquipe estado={estado} />
+      </aside>
     </div>
   );
 }
@@ -86,33 +136,27 @@ function Painel({ estado }: { estado: Estado }) {
 function CardMissao({ estado }: { estado: Estado }) {
   const { missao, erro } = useMissaoDoDia(estado);
   return (
-    <section
-      aria-label="Missão do dia"
-      className="flex flex-wrap items-center justify-between gap-5 rounded-3xl bg-[linear-gradient(110deg,#1e2273_0%,#280f91_55%,#7c3cb8_100%)] p-6 text-white sm:p-8"
-    >
+    <Card as="section" aria-label="Missão do dia" className="flex flex-wrap items-center gap-4 sm:gap-5">
+      <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#1b8fe6] text-white shadow-[0_4px_0_#0f66b4]">
+        <Target aria-hidden className="size-7" />
+      </span>
       {!missao ? (
-        erro ? <Aviso>{erro}</Aviso> : <span className="text-[#dcddf5]">Preparando sua missão do dia…</span>
+        erro ? <Aviso>{erro}</Aviso> : <span className="text-muted">Preparando sua missão do dia…</span>
       ) : (
         <>
-          <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-2.5">
-            <span className="text-sm font-bold uppercase tracking-[0.12em] text-ciano">
-              Missão do dia · 5–10 min {missao.status === "feita" && "· concluída"}
+          <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-link">
+              Missão do dia · 5–10 min · +40 XP {missao.status === "feita" && "· concluída"}
             </span>
-            <h2 className="text-xl font-bold leading-snug sm:text-2xl">{missao.desafio.enunciado}</h2>
-            <div className="flex flex-wrap gap-2">
-              {missao.desafio.competencias.map((c) => (
-                <TagCompetencia key={c} slug={c} sobreEscuro />
-              ))}
-              <span className="rounded-full bg-navy px-2.5 py-1 text-xs text-[#dcddf5]">+40 XP</span>
-            </div>
+            <p className="line-clamp-2 font-bold leading-snug">{missao.desafio.enunciado}</p>
           </div>
-          <Link href="/missao" className={botao.destaque}>
-            {missao.status === "feita" ? "Ver feedback" : missao.status === "pulada" ? "Ver missão" : "Resolver agora"}
+          <Link href="/missao" className={cx(botao.primario, "w-full sm:w-auto")}>
+            {missao.status === "feita" ? "Ver feedback" : missao.status === "pulada" ? "Ver missão" : "Resolver"}
             <ArrowRight aria-hidden className="size-5" />
           </Link>
         </>
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -189,44 +233,6 @@ function CardRelatorio({ estado }: { estado: Estado }) {
       <button type="button" onClick={gerar} disabled={gerando} className={cx(botao.secundario, "min-h-11 self-start text-sm")}>
         <RefreshCw aria-hidden className="size-4" /> {r ? "Atualizar relatório" : "Gerar relatório"}
       </button>
-    </Card>
-  );
-}
-
-function CardTrilha({ estado }: { estado: Estado }) {
-  const atual =
-    estado.trilha.map(moduloDaCompetencia).find((m) => temConteudo(m) && !estado.progresso[m.id]?.concluido) ??
-    MODULOS[0];
-  const prog = estado.progresso[atual.id];
-  const passos = atual.licoes.length + 2;
-  const feitos = (prog?.licoesFeitas.length ?? 0) + (prog?.quizAcertos !== undefined ? 1 : 0) + (prog?.concluido ? 1 : 0);
-  const proxima = atual.licoes.find((l) => !prog?.licoesFeitas.includes(l.id));
-  const concluidos = Object.values(estado.progresso).filter((p) => p.concluido).length;
-
-  return (
-    <Card className="flex flex-col gap-3.5">
-      <TituloSecao acao={<LinkAcao href="/trilha">Ver trilha</LinkAcao>}>Progresso na trilha</TituloSecao>
-      <span className="text-sm text-muted">
-        Módulo {estado.trilha.indexOf(atual.competencia) + 1} de {estado.trilha.length} · {concluidos} concluído
-        {concluidos === 1 ? "" : "s"}
-      </span>
-      <span className="font-display text-2xl font-bold italic text-heading">{atual.titulo}</span>
-      <div className="flex items-center gap-3">
-        <Barra valor={feitos / passos} className="flex-1" />
-        <span className="font-bold">{Math.round((feitos / passos) * 100)}%</span>
-      </div>
-      <Link
-        href={`/trilha/${atual.id}`}
-        className="flex min-h-12 items-center gap-2.5 rounded-xl bg-sunken px-3.5 py-3 text-sm hover:bg-selected"
-      >
-        <ArrowRight aria-hidden className="size-4 shrink-0 text-link" />
-        <span>
-          Próximo:{" "}
-          <strong>
-            {proxima ? `${proxima.titulo} (${proxima.minutos} min)` : prog?.quizAcertos === undefined ? "Quiz rápido" : "Desafio prático"}
-          </strong>
-        </span>
-      </Link>
     </Card>
   );
 }
@@ -340,14 +346,14 @@ function CardComunidade({ estado }: { estado: Estado }) {
   return (
     <Card>
       <TituloSecao acao={<LinkAcao href="/comunidade">Ver todos</LinkAcao>}>
-        Na comunidade · sobre {competencia(foco).curto.toLowerCase()}
+        Comunidade · {competencia(foco).curto.toLowerCase()}
       </TituloSecao>
       {!posts ? (
         <Carregando />
       ) : posts.length === 0 ? (
         <p className="text-sm text-muted">Nenhum tópico ainda. Que tal abrir o primeiro?</p>
       ) : (
-        <ul className="grid gap-3 md:grid-cols-3">
+        <ul className="flex flex-col gap-2.5">
           {posts.map((p) => (
             <li key={p.id}>
               <Link

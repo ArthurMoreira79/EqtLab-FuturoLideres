@@ -7,6 +7,7 @@ import { FeedbackView } from "@/components/FeedbackView";
 import { Radar } from "@/components/Radar";
 import { TemaToggle } from "@/components/TemaToggle";
 import { Barra, Card, TituloPagina, TituloSecao, Vazio, botao, cx, formatarData } from "@/components/ui";
+import { sairDaConta } from "@/lib/auth/cliente";
 import { COMPETENCIAS, NOMES_NIVEL, nivelDe } from "@/lib/competencias";
 import { estadoDemo } from "@/lib/demo";
 import { acoes, nivelXP, useEstado, type Estado } from "@/lib/estado";
@@ -167,8 +168,8 @@ function TelaPerfil({ estado }: { estado: Estado }) {
               type="button"
               className={botao.secundario}
               onClick={() => {
-                if (confirm("Apagar seus dados deste navegador e voltar ao início?")) {
-                  acoes.sair();
+                if (confirm("Sair e apagar os dados deste navegador? Sua conta continua salva e você pode entrar de novo.")) {
+                  void sairDaConta();
                   router.push("/");
                 }
               }}

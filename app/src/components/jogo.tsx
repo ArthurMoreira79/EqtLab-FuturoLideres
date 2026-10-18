@@ -1,13 +1,24 @@
 import Image from "next/image";
 import { cx } from "./ui";
 
+/** Visual comum dos botões “3D” azuis (sem tamanho): degrau embaixo, brilho que passa e cores por tema. */
+const BASE_3D =
+  "relative isolate inline-flex items-center justify-center overflow-hidden text-center font-extrabold uppercase leading-none tracking-wider bg-[#1b8fe6] text-white shadow-[0_4px_0_#1470b8] transition-[transform,box-shadow,background-color] hover:bg-[#2a9cf0] active:translate-y-1 active:shadow-none disabled:shadow-none before:absolute before:inset-y-0 before:left-0 before:-z-10 before:w-1/4 before:animate-deslizar before:bg-white/30 before:content-[''] dark:bg-ciano dark:text-noite dark:shadow-[0_4px_0_#2fa6d4] dark:hover:bg-[#8ee3ff] dark:before:bg-white/50";
+
 /** Botão grande com “degrau” embaixo (estilo jogo). Use junto com `buttonVariants` do HeroUI. */
-export const BOTAO_3D =
-  "relative isolate inline-flex h-14 min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl px-8 text-center text-base font-extrabold uppercase leading-none tracking-wider bg-[#1b8fe6] text-white shadow-[0_4px_0_#1470b8] transition-[transform,box-shadow,background-color] hover:bg-[#2a9cf0] active:translate-y-1 active:shadow-none disabled:shadow-none before:absolute before:inset-y-0 before:left-0 before:-z-10 before:w-1/4 before:animate-deslizar before:bg-white/30 before:content-[''] dark:bg-ciano dark:text-noite dark:shadow-[0_4px_0_#2fa6d4] dark:hover:bg-[#8ee3ff] dark:before:bg-white/50 sm:w-auto";
+export const BOTAO_3D = `${BASE_3D} h-14 min-h-14 w-full rounded-2xl px-8 text-base sm:w-auto`;
+
+/** Versão compacta (topo da página, menus). Largura pelo conteúdo. */
+export const BOTAO_3D_PEQUENO = `${BASE_3D} h-10 min-h-10 rounded-xl px-4 text-xs shadow-[0_3px_0_#1470b8] dark:shadow-[0_3px_0_#2fa6d4]`;
+
+const BASE_3D_CLARO =
+  "inline-flex items-center justify-center rounded-2xl border-2 border-[#cfe9fb] bg-white font-extrabold uppercase tracking-wider text-[#1b8fe6] shadow-[0_4px_0_#cfe9fb] transition-[transform,box-shadow] hover:bg-[#f1faff] active:translate-y-1 active:shadow-none dark:border-line dark:bg-card dark:text-ciano dark:shadow-[0_4px_0_#2a2f7a]";
 
 /** Variante clara (ação secundária de peso). */
-export const BOTAO_3D_CLARO =
-  "h-14 min-h-14 w-full rounded-2xl border-2 border-[#cfe9fb] bg-white px-8 text-base font-extrabold uppercase tracking-wider text-[#1b8fe6] shadow-[0_4px_0_#cfe9fb] transition-[transform,box-shadow] hover:bg-[#f1faff] active:translate-y-1 active:shadow-none dark:border-line dark:bg-card dark:text-ciano dark:shadow-[0_4px_0_#2a2f7a] sm:w-auto";
+export const BOTAO_3D_CLARO = `${BASE_3D_CLARO} h-14 min-h-14 w-full px-8 text-base sm:w-auto`;
+
+/** Variante clara compacta (ex.: “Já tenho conta” no topo). */
+export const BOTAO_3D_CLARO_PEQUENO = `${BASE_3D_CLARO} h-10 min-h-10 rounded-xl px-4 text-xs shadow-[0_3px_0_#cfe9fb] dark:shadow-[0_3px_0_#2a2f7a]`;
 
 /** Link de texto em caixa-alta (“Agora não”, “Explorar demonstração”). */
 export const LINK_TEXTO =
@@ -17,7 +28,16 @@ export const LINK_TEXTO =
 export const CARTAO_JOGO =
   "rounded-3xl border-2 border-[#cfe9fb] bg-white shadow-[0_4px_0_#cfe9fb] dark:border-line dark:bg-card dark:shadow-[0_4px_0_#2a2f7a]";
 
-export function Clara({
+/** Campo de texto grande e arredondado (cadastro e login). */
+export const CAMPO_JOGO =
+  "h-12 w-full rounded-2xl border-2 border-[#cfe9fb] bg-white px-4 text-base font-semibold text-[#14174f] placeholder:text-[#9bb0c2] data-[focus-visible=true]:border-[#1b8fe6] data-[invalid=true]:border-[#d92d20] dark:border-line dark:bg-card dark:text-ink";
+
+/** Opção selecionável (chips de escolha). */
+export const OPCAO_JOGO =
+  "h-12 min-h-12 rounded-2xl border-2 border-[#cfe9fb] bg-white px-4 font-extrabold text-[#14174f] shadow-[0_3px_0_#cfe9fb] data-[selected=true]:border-[#1b8fe6] data-[selected=true]:bg-[#ddf1ff] data-[selected=true]:text-[#1470b8] data-[selected=true]:shadow-[0_3px_0_#1b8fe6] dark:border-line dark:bg-card dark:text-ink dark:shadow-[0_3px_0_#2a2f7a] dark:data-[selected=true]:border-ciano dark:data-[selected=true]:bg-selected dark:data-[selected=true]:text-ciano dark:data-[selected=true]:shadow-[0_3px_0_#61d6ff]";
+
+/** Clara clássica (camisa amarela): usada nas telas de antes do login. A nova, com poses, fica dentro do app. */
+export function ClaraClassica({
   largura = 260,
   className,
   prioridade,
@@ -37,6 +57,55 @@ export function Clara({
       style={{ width: largura, height: "auto" }}
       className={cx("select-none drop-shadow-[0_14px_16px_rgba(20,23,79,0.18)]", className)}
     />
+  );
+}
+
+export type PoseClara = "acenando" | "apontando" | "positivo" | "tablet";
+
+const TEXTO_POSE: Record<PoseClara, string> = {
+  acenando: "acenando",
+  apontando: "apontando para o lado",
+  positivo: "fazendo sinal de positivo",
+  tablet: "segurando um tablet",
+};
+
+/**
+ * Clara, a mentora do EQT Lab (imagens em /public/clara). Fica parada de propósito: as poses mudam,
+ * a imagem não se mexe. `busto` recorta rosto e tronco (para telas de formulário); sem ele, corpo inteiro.
+ */
+export function Clara({
+  pose = "acenando",
+  largura = 240,
+  busto,
+  className,
+  prioridade,
+}: {
+  pose?: PoseClara;
+  largura?: number;
+  busto?: boolean;
+  className?: string;
+  prioridade?: boolean;
+}) {
+  const imagem = (
+    <Image
+      src={`/clara/${pose}.webp`}
+      alt={`Clara, mascote do EQT Lab, ${TEXTO_POSE[pose]}`}
+      width={720}
+      height={960}
+      priority={prioridade}
+      sizes={`${Math.round(largura * (busto ? 1.25 : 1))}px`}
+      style={busto ? { width: largura * 1.25, height: "auto", maxWidth: "none" } : { width: largura, height: "auto" }}
+      className={cx("select-none", !busto && "drop-shadow-[0_14px_16px_rgba(20,23,79,0.18)]")}
+    />
+  );
+  if (!busto) return <span className={cx("inline-block", className)}>{imagem}</span>;
+  return (
+    <span
+      className={cx("relative inline-block shrink-0 overflow-hidden", className)}
+      style={{ width: largura, height: largura * 1.1 }}
+    >
+      <span className="absolute left-1/2 top-0 -translate-x-1/2">{imagem}</span>
+    </span>
   );
 }
 

@@ -6,10 +6,14 @@ Especificação completa: [`../prompt-futuros-lideres.md`](../prompt-futuros-lid
 ## Rodando
 
 ```bash
-npm install
-cp .env.example .env.local   # opcional: por padrão a IA é simulada
-npm run dev
+docker compose up -d               # na raiz do repositório: sobe o Postgres (porta 5434)
+cd app
+pnpm install
+cp .env.example .env.local         # preencha o JWT_SECRET: openssl rand -base64 48
+pnpm dev
 ```
+
+A IA continua simulada por padrão. O banco é necessário para **criar conta e entrar**; o modo demonstração funciona sem ele.
 
 Abra http://localhost:3000 e use **Explorar com dados de demonstração** (usuária com 3 semanas de histórico) ou **Criar meu perfil** para o fluxo completo de cadastro → diagnóstico.
 
@@ -20,10 +24,12 @@ Stack: Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Ta
 | Tela | Rota | Notas |
 |---|---|---|
 | Boas-vindas | `/` | Criar perfil ou carregar demo |
-| Cadastro / perfil profissional | `/cadastro` | |
-| Diagnóstico (partes A, B, C) | `/diagnostico` | Salvamento parcial; parte C avaliada pela IA |
-| Resultado com radar | `/resultado` | Trilha ordenada pelo diagnóstico |
-| Home (dashboard) | `/inicio` | Missão do dia, radar antes × agora, relatório da IA, trilha, equipe, comunidade |
+| Entrar | `/entrar` | Login com e-mail e senha (sessão por JWT) |
+| Cadastro / perfil profissional | `/cadastro` | 4 fases, cada uma salva no banco; só a senha no fim |
+| Tour “como funciona” | `/bem-vindo` | Primeiro acesso de contas novas; dá para rever em “Como funciona” no menu |
+| Diagnóstico rápido | `/diagnostico` | 4 perguntas de marcar; respostas e notas salvas no PostgreSQL ao concluir |
+| Resultado com barras animadas | `/resultado` | Trilha ordenada pelo diagnóstico |
+| Painel (dashboard) | `/inicio` | Trilha em “caminho” (cada passo é um ponto), missão do dia, **constância** semanal, radar, relatório da IA, equipe, comunidade |
 | Trilha | `/trilha`, `/trilha/[modulo]` | 2 módulos completos (Feedback, Conflitos): lições + quiz + desafio |
 | Missão do dia | `/missao` | Cenário aberto, escolha + justificativa, mundo real; trocar 1×/dia, pular |
 | Comunidade | `/comunidade`, `/comunidade/nova`, `/comunidade/[id]` | Anônimo, útil, melhor resposta, resposta da IA |
@@ -56,6 +62,10 @@ src/
 | POST | `/api/avaliar` | Avalia resposta de missão/desafio/diagnóstico → feedback JSON (seção 6.1) |
 | POST | `/api/relatorio` | Gera o relatório “Seu momento como líder” (seção 6.2) |
 | POST | `/api/missao-do-dia` | Sorteia a missão com aleatoriedade ponderada (prioriza competências fracas, evita repetir) |
+| GET / PUT | `/api/cadastro/rascunho` | Lê / grava o cadastro **a cada fase** (rascunho no banco, preso a um cookie) |
+| POST | `/api/cadastro/concluir` | Recebe só a senha, cria a conta e abre a sessão |
+| POST | `/api/auth/login` · `/api/auth/logout` · GET `/api/auth/eu` | Login, logout (revoga a sessão) e “quem sou eu” |
+| GET / POST | `/api/diagnostico` | Recupera o último diagnóstico / valida as 4 respostas, calcula notas e salva em transação |
 | GET | `/api/desafios/:id` | Versão pública do desafio (sem rubrica nem exemplo de resposta) |
 | GET/POST | `/api/comunidade` | Lista (filtros `tag`, `semResposta`, `q`) / cria tópico (bloqueia e-mail, telefone, CPF) |
 | GET/POST | `/api/comunidade/:id` | Detalhe / `acao: responder \| util \| melhor` |
@@ -82,24 +92,25 @@ Provedores disponíveis (variável `IA_PROVEDOR`):
 Para outra IA (ex.: Anthropic, Gemini): crie `src/lib/ia/<nome>.ts` implementando `ProvedorIA`, reaproveite os prompts de `src/lib/ia/prompts.ts` e adicione um `case` em `obterProvedor()`.
 Os prompts já seguem as regras da especificação: avaliação só pela rubrica, tom de coach, sem julgar a pessoa, pedir para desenvolver respostas curtas e proteção contra prompt injection (resposta do usuário entre marcadores com nonce).
 
-## Para a equipe de back-end
+## Persistência e autenticação
 
-Hoje os dados do usuário ficam no **localStorage** (`src/lib/estado.ts`) e o fórum fica **em memória no servidor** (reinicia junto com o servidor). Cada ação já corresponde a uma tabela do modelo de dados (seção 7):
+O que já vai para o **PostgreSQL** (tabelas criadas sozinhas na primeira requisição, veja `src/lib/db/index.ts`):
 
-| Front hoje (`acoes.*` em `estado.ts`) | Tabela no Supabase |
+| Tabela | Para quê |
 |---|---|
-| `criarConta`, `atualizarPerfil` | `users` |
-| `concluirDiagnostico` | `assessments`, `competency_scores` |
-| `registrarSubmissao`, `contestar` | `submissions`, `competency_scores`, `xp_events` |
-| `marcarLicao`, `salvarQuiz` | `user_modules` |
-| `definirMissao`, `pularMissao` | `daily_missions` |
-| `salvarRelatorio` | `ai_reports` |
-| `adicionarMembro`, `atualizarMembro`, `removerMembro` | `team_members` |
-| `repositorio.ts` (comunidade) | `forum_posts`, `forum_replies` |
+| `cadastros_rascunho` | Cada fase do cadastro é gravada ao avançar; dá para fechar a aba e retomar. Expira em 7 dias |
+| `usuarios` | Conta criada no fim, só com a senha (hash **scrypt** com sal) |
+| `sessoes` | Uma linha por login; o JWT carrega o id dela, então o logout **revoga** de verdade |
+| `limites_taxa` | Contadores do rate limit (no banco, valem para todas as instâncias) |
+| `diagnosticos` | Usuário, versão do questionário, tipo, ordem da trilha e data |
+| `diagnostico_respostas` | Uma alternativa por pergunta; cópia do enunciado e da alternativa para histórico |
+| `pontuacoes_competencia` | Notas calculadas no servidor, vinculadas à pessoa e ao diagnóstico |
 
-Sugestão de migração: trocar o corpo de cada ação por uma chamada à API/Supabase mantendo as mesmas assinaturas, e trocar `useEstado()` por um hook que lê do servidor. As telas não precisam mudar.
+**Sessão:** JWT HS256 (`jose`) em cookie `HttpOnly`, `SameSite=Lax` (e `Secure` em produção), 7 dias, validado também contra a tabela `sessoes`. Requer `JWT_SECRET` (≥ 32 caracteres; em produção a aplicação se recusa a subir sem ele).
 
-Regras de negócio já implementadas no front e que devem migrar para o servidor: atualização de pontuação após feedback (média móvel 80/20), XP por atividade, sequência que congela no primeiro dia perdido, limite de 1 troca de missão por dia, nota mínima 7 para concluir módulo.
+**Proteções:** validação com Zod no cliente **e** no servidor (`src/lib/cadastro.ts`, objetos `.strict()`); rate limit no login (30/15 min por IP e 8/15 min por conta), no cadastro (60/10 min por IP; conclusão 10/h) com `429 + Retry-After`; mesma mensagem para “e-mail inexistente” e “senha errada” (e tempo equalizado); checagem de `Origin`; corpo limitado a 8 KB.
+
+> O rascunho do diagnóstico fica neste navegador, isolado por conta. Ao concluir, as quatro respostas, as oito notas e a ordem da trilha são gravadas juntas no PostgreSQL; só após a confirmação a tela avança. No login em outro dispositivo, o diagnóstico é recuperado. O modo demonstração continua local. XP, progresso de missões, equipe e comunidade ainda ficam no navegador. Cada ação de `estado.ts` corresponde a uma tabela do modelo de dados (seção 7 da especificação), e o `usuarioId` já é guardado junto para facilitar essa migração.
 
 ## Scripts
 
@@ -108,3 +119,11 @@ npm run dev     # desenvolvimento
 npm run build   # build de produção
 npm run lint    # ESLint (inclui regras do React Compiler)
 ```
+
+## Controle do schema com Drizzle
+
+A fonte das tabelas é [`src/lib/db/schema.ts`](src/lib/db/schema.ts). As migrações SQL e snapshots ficam em [`drizzle/`](drizzle/). Para alterar o banco, edite o schema, rode `pnpm db:generate`, revise o SQL e rode `pnpm db:migrate`. Use `pnpm db:check` para verificar a sequência e `pnpm db:studio` para inspecionar os dados. O app também aplica migrações pendentes na primeira requisição ao banco.
+
+Relacionamentos: `usuarios` → `sessoes`, `diagnosticos` e `pontuacoes_competencia`; `diagnosticos` → `diagnostico_respostas` e `pontuacoes_competencia`. A chave composta impede respostas duplicadas à mesma pergunta, e cada diagnóstico tem no máximo uma nota por competência. O banco restringe notas a 0–5 e alternativas a índices não negativos; a API valida os IDs e o limite de alternativas de cada pergunta.
+
+O questionário atual tem versão 2. Registros antigos preservam a versão 1 e podem ter os textos históricos nulos. As notas são indicadores das alternativas escolhidas; competências sem evidência nas quatro respostas recebem o valor neutro 2,5. O resultado não representa módulos concluídos: a trilha começa do básico.

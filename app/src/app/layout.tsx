@@ -15,6 +15,12 @@ export const metadata: Metadata = {
     "Plataforma de desenvolvimento para líderes recém-promovidos: missões diárias, trilha de aprendizado e feedback com IA.",
 };
 
+/**
+ * Roda antes da primeira pintura: se a abertura já tocou nesta aba, marca o <html> e o CSS
+ * esconde a tela de progresso desde o primeiro quadro (sem “piscar” ao voltar para a página inicial).
+ */
+const SCRIPT_ABERTURA = `try{if(sessionStorage.getItem("fl:abertura")==="1")document.documentElement.dataset.abertura="visto"}catch(e){}`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -22,6 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className="h-full antialiased"
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_ABERTURA }} />
+      </head>
       <body className="min-h-full font-sans">
         <Providers>{children}</Providers>
       </body>

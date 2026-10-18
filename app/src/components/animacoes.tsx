@@ -8,23 +8,43 @@ import { cx } from "./ui";
 /* ─────────────── Abertura (tela de “carregando energia”) ─────────────── */
 
 const DURACAO_ABERTURA_MS = 1900;
+const CHAVE_ABERTURA = "fl:abertura";
 
-export function Abertura({ aoSair }: { aoSair?: () => void }) {
+/** Marca a abertura como vista: o <html> ganha o atributo (CSS esconde tela e libera a entrada do conteúdo). */
+function marcarVista() {
+  document.documentElement.dataset.abertura = "visto";
+  try {
+    sessionStorage.setItem(CHAVE_ABERTURA, "1");
+  } catch {
+    /* modo privado: a abertura só volta a tocar ao recarregar */
+  }
+}
+
+/**
+ * Toca uma vez por aba. Quem decide se aparece é o CSS (`html[data-abertura="visto"] #abertura`),
+ * com o atributo posto por um script no <head> antes de qualquer pintura — por isso não há flash.
+ */
+export function Abertura() {
   const [pct, setPct] = useState(0);
   const [fase, setFase] = useState<"carregando" | "saindo" | "fim">("carregando");
 
   useEffect(() => {
+    const ativa = document.documentElement.dataset.abertura !== "visto";
     const reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const duracao = reduz ? 300 : DURACAO_ABERTURA_MS;
+    if (!ativa || reduz) {
+      marcarVista();
+      const t = setTimeout(() => setFase("fim"), 0);
+      return () => clearTimeout(t);
+    }
     const inicio = performance.now();
     let saida: ReturnType<typeof setTimeout> | undefined;
     const tick = setInterval(() => {
-      const p = Math.min(100, ((performance.now() - inicio) / duracao) * 100);
+      const p = Math.min(100, ((performance.now() - inicio) / DURACAO_ABERTURA_MS) * 100);
       setPct(Math.round(p));
       if (p >= 100) {
         clearInterval(tick);
         setFase("saindo");
-        aoSair?.();
+        marcarVista(); // libera a entrada em cascata do conteúdo enquanto a tela some
         saida = setTimeout(() => setFase("fim"), 550);
       }
     }, 40);
@@ -32,17 +52,18 @@ export function Abertura({ aoSair }: { aoSair?: () => void }) {
       clearInterval(tick);
       clearTimeout(saida);
     };
-  }, [aoSair]);
+  }, []);
 
   if (fase === "fim") return null;
 
   return (
     <div
+      id="abertura"
       role="status"
       aria-live="polite"
       onClick={() => {
+        marcarVista();
         setFase("fim");
-        aoSair?.();
       }}
       className={cx(
         "fixed inset-0 z-[100] grid place-items-center bg-[linear-gradient(160deg,#0b0d33_0%,#1e2273_60%,#280f91_100%)] px-6 text-white",

@@ -56,6 +56,9 @@ export function estadoDemo(): Estado {
     },
     xp: 1240,
     sequencia: { dias: 12, ultimoDia: diasAtras(1), congelada: false },
+    tourVisto: true,
+    // Constância das últimas semanas: bem firme recentemente, com algumas falhas antes (segundas e finais de semana).
+    diasAtivos: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 17, 18, 19, 21, 22, 24, 25, 26].map(diasAtras),
     trocasHoje: { data: hoje(), usadas: 0 },
     missao: null,
     submissoes: [

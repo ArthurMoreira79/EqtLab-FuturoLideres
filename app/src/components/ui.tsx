@@ -8,13 +8,14 @@ export function cx(...c: (string | false | null | undefined)[]) {
 }
 
 const BASE_BOTAO =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-extrabold uppercase tracking-wide transition-[transform,box-shadow,background-color] active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none";
 
+/** Botões no estilo “jogo”: degrau embaixo que afunda ao clicar. */
 export const botao = {
-  primario: `${BASE_BOTAO} bg-primary text-on-primary hover:bg-primary-hover`,
-  secundario: `${BASE_BOTAO} border border-line bg-card text-ink hover:bg-sunken`,
-  destaque: `${BASE_BOTAO} bg-ciano font-bold text-noite hover:bg-[#8ee3ff]`,
-  fantasma: `${BASE_BOTAO} border border-lilas text-white hover:bg-white/10`,
+  primario: `${BASE_BOTAO} bg-primary text-on-primary shadow-[0_4px_0_#0b4f91] hover:bg-primary-hover dark:shadow-[0_4px_0_#2fa6d4]`,
+  secundario: `${BASE_BOTAO} border-2 border-line bg-card text-link shadow-[0_4px_0_var(--line)] hover:bg-sunken`,
+  destaque: `${BASE_BOTAO} bg-ciano text-noite shadow-[0_4px_0_#2fa6d4] hover:bg-[#8ee3ff]`,
+  fantasma: `${BASE_BOTAO} border-2 border-lilas text-white hover:bg-white/10`,
 };
 
 export function Card({
@@ -24,7 +25,7 @@ export function Card({
   ...rest
 }: { children: React.ReactNode; className?: string; as?: "section" | "div" | "article" } & React.HTMLAttributes<HTMLElement>) {
   return (
-    <Tag className={cx("rounded-2xl border border-line bg-card p-5 sm:p-6", className)} {...rest}>
+    <Tag className={cx("rounded-3xl border-2 border-line bg-card p-5 shadow-[0_3px_0_var(--line)] sm:p-6", className)} {...rest}>
       {children}
     </Tag>
   );
@@ -53,7 +54,7 @@ export function TagCompetencia({ slug, sobreEscuro }: { slug: CompetenciaSlug; s
     <span
       className={cx(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
-        sobreEscuro ? "bg-navy text-lilas" : "bg-sunken text-ink",
+        sobreEscuro ? "bg-white/20 text-white" : "bg-sunken text-ink",
       )}
     >
       <span aria-hidden className="size-2 rounded-full" style={{ background: c.cor }} />

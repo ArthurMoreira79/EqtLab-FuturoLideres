@@ -9,7 +9,7 @@ export interface CenarioJulgamento {
   opcoes: { texto: string; pesos: Partial<Record<CompetenciaSlug, number>> }[];
 }
 
-/** Parte B — julgamento situacional (versão curta do MVP). */
+/** Quatro perguntas de julgamento situacional, sem autoavaliação nem resposta aberta. */
 export const CENARIOS: CenarioJulgamento[] = [
   {
     id: "b1",
@@ -59,14 +59,14 @@ export const CENARIOS: CenarioJulgamento[] = [
 ];
 
 /**
- * Combina autoavaliação (parte A, peso 40%) e julgamento situacional (parte B, peso 60%).
- * Competências sem cenário usam só a autoavaliação.
+ * Nota (1 a 5) de cada competência = média dos pesos das alternativas marcadas nos cenários.
+ * Os 4 cenários cobrem as 8 competências; se alguma ficar sem dado, usa o meio da escala.
  */
-export function calcularDiagnostico(autoavaliacao: Pontuacoes, escolhas: Record<string, number>): Pontuacoes {
+export function calcularDiagnostico(escolhas: Record<string, number>): Pontuacoes {
   const somas = Object.fromEntries(SLUGS.map((s) => [s, [] as number[]])) as Record<CompetenciaSlug, number[]>;
   for (const cenario of CENARIOS) {
     const i = escolhas[cenario.id];
-    if (i === undefined) continue;
+    if (i === undefined || !cenario.opcoes[i]) continue;
     for (const [slug, peso] of Object.entries(cenario.opcoes[i].pesos)) {
       somas[slug as CompetenciaSlug].push(peso);
     }
@@ -74,8 +74,8 @@ export function calcularDiagnostico(autoavaliacao: Pontuacoes, escolhas: Record<
   return Object.fromEntries(
     SLUGS.map((s) => {
       const b = somas[s];
-      const valor = b.length ? 0.4 * autoavaliacao[s] + 0.6 * (b.reduce((x, y) => x + y, 0) / b.length) : autoavaliacao[s];
-      return [s, Math.round(valor * 10) / 10];
+      const media = b.length ? b.reduce((x, y) => x + y, 0) / b.length : 2.5;
+      return [s, Math.round(media * 10) / 10];
     }),
   ) as Pontuacoes;
 }

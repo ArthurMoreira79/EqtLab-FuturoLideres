@@ -28,18 +28,18 @@ function TelaMissao({ estado }: { estado: Estado }) {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <section className="flex flex-col gap-3 rounded-3xl bg-[linear-gradient(120deg,#1e2273_0%,#280f91_70%,#7c3cb8_100%)] p-6 text-white sm:p-8">
+      <section className="flex flex-col gap-3 rounded-3xl bg-[linear-gradient(120deg,#1478d0_0%,#1cb0f6_100%)] p-6 text-white shadow-[0_5px_0_#0b4f91] sm:p-8">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-xs font-bold uppercase tracking-[0.12em] text-ciano">
+          <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-white/90">
             Missão do dia · {TIPO[desafio.tipo]}
           </span>
           <span className="inline-flex items-center gap-1 text-sm font-bold">
-            <Flame aria-hidden className="size-4 text-lilas" /> {estado.sequencia.dias}
+            <Flame aria-hidden className="size-4 text-[#ffd23f]" fill="currentColor" /> {estado.sequencia.dias}
             <span className="sr-only">dias seguidos</span>
           </span>
         </div>
         <h1 className="text-xl font-bold leading-snug sm:text-2xl">{desafio.enunciado}</h1>
-        <p className="text-[#dcddf5]">{desafio.pergunta}</p>
+        <p className="text-white/90">{desafio.pergunta}</p>
         <div className="flex flex-wrap gap-2">
           {desafio.competencias.map((c) => (
             <TagCompetencia key={c} slug={c} sobreEscuro />

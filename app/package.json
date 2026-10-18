@@ -1,21 +1,28 @@
 {
-  "name": "site",
+  "name": "futuro-lideres",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:check": "drizzle-kit check"
   },
   "dependencies": {
     "@fontsource/figtree": "^5.3.0",
     "@fontsource/saira": "^5.3.0",
     "@heroui/react": "^3.2.6",
     "@heroui/styles": "^3.2.6",
+    "drizzle-orm": "^0.45.4",
+    "jose": "^6.2.12",
     "lucide-react": "^1.57.0",
     "next": "16.4.1",
     "next-themes": "^0.4.6",
+    "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
@@ -24,8 +31,10 @@
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.4.1",
     "tailwindcss": "^4",

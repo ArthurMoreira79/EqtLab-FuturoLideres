@@ -16,10 +16,16 @@ import type {
 
 /**
  * Estado do usuário guardado no navegador (localStorage).
- * É a "fonte de dados" do front enquanto o back-end com Supabase não existe:
- * cada ação aqui corresponde a uma futura chamada de API/tabela (veja README).
+ * Perfil e diagnóstico são persistidos no PostgreSQL; os demais dados de progresso
+ * ainda usam este estado local (veja README).
  */
 export interface Estado {
+  /** Id da conta no servidor (ausente no modo demonstração). */
+  usuarioId?: string;
+  /** A pessoa já viu o tour “como funciona”. */
+  tourVisto?: boolean;
+  /** Datas (AAAA-MM-DD) em que houve atividade; alimenta o medidor de constância. */
+  diasAtivos?: string[];
   perfil: Perfil;
   diagnostico: { pontuacoes: Pontuacoes; data: string } | null;
   pontuacoes: Pontuacoes;
@@ -49,6 +55,11 @@ function ler(): Estado | null {
     }
   }
   return cache;
+}
+
+/** Leitura pontual (fora de componentes React), ex.: decidir para onde ir depois do login. */
+export function lerEstadoAtual(): Estado | null {
+  return ler();
 }
 
 function gravar(novo: Estado | null) {
@@ -117,6 +128,13 @@ function registrarDiaAtivo(e: Estado): Estado["sequencia"] {
   return { dias: 1, ultimoDia: dia, congelada: false };
 }
 
+/** Registra o dia de hoje na sequência e no histórico de dias ativos. */
+function comDiaAtivo(e: Estado): Pick<Estado, "sequencia" | "diasAtivos"> {
+  const dia = hoje();
+  const dias = e.diasAtivos ?? [];
+  return { sequencia: registrarDiaAtivo(e), diasAtivos: dias.includes(dia) ? dias : [...dias, dia].slice(-120) };
+}
+
 function aplicarNotas(p: Pontuacoes, competencias: FeedbackIA["competencias"]): Pontuacoes {
   const novo = { ...p };
   for (const c of competencias) {
@@ -133,9 +151,10 @@ function comHistorico(e: Estado, pontuacoes: Pontuacoes): Estado["historico"] {
 /* ---------------- ações ---------------- */
 
 export const acoes = {
-  criarConta(perfil: Perfil) {
+  criarConta(perfil: Perfil, usuarioId?: string) {
     const zerado = Object.fromEntries(SLUGS.map((s) => [s, 0])) as Pontuacoes;
     gravar({
+      usuarioId,
       perfil,
       diagnostico: null,
       pontuacoes: zerado,
@@ -150,6 +169,35 @@ export const acoes = {
       equipe: [],
       relatorio: null,
     });
+  },
+
+  /**
+   * Login: se este navegador já tem o progresso dessa mesma conta, mantém e só atualiza o perfil;
+   * senão (outra conta, ou modo demonstração) começa um estado novo a partir do perfil do servidor.
+   */
+  entrar(perfil: Perfil, usuarioId: string, diagnostico?: { pontuacoes: Pontuacoes; data: string } | null) {
+    const atual = ler();
+    if (atual?.usuarioId === usuarioId && (atual.diagnostico || !diagnostico)) {
+      gravar({ ...atual, perfil });
+      return;
+    }
+    acoes.criarConta(perfil, usuarioId);
+    // Já fez o diagnóstico em outro dispositivo: traz do servidor e pula o tour e o diagnóstico.
+    if (diagnostico) {
+      atualizar((e) => ({
+        ...e,
+        tourVisto: true,
+        diagnostico,
+        pontuacoes: diagnostico.pontuacoes,
+        historico: [{ data: diagnostico.data, pontuacoes: diagnostico.pontuacoes }],
+        trilha: ordenarTrilha(diagnostico.pontuacoes),
+        xp: e.xp + XP.diagnostico,
+      }));
+    }
+  },
+
+  concluirTour() {
+    atualizar((e) => (e.tourVisto ? e : { ...e, tourVisto: true }));
   },
 
   carregarDemo(estado: Estado) {
@@ -173,7 +221,7 @@ export const acoes = {
       trilha: ordenarTrilha(pontuacoes),
       xp: e.xp + XP.diagnostico,
       submissoes: submissao ? [submissao, ...e.submissoes] : e.submissoes,
-      sequencia: registrarDiaAtivo(e),
+      ...comDiaAtivo(e),
     }));
   },
 
@@ -196,7 +244,7 @@ export const acoes = {
         missao,
         xp: e.xp + (s.origem === "missao" ? XP.missao : XP.desafio),
         submissoes: [s, ...e.submissoes],
-        sequencia: registrarDiaAtivo(e),
+        ...comDiaAtivo(e),
       };
     });
   },
@@ -216,7 +264,7 @@ export const acoes = {
         ...e,
         xp: e.xp + XP.licao,
         progresso: { ...e.progresso, [moduloId]: { ...p, licoesFeitas: [...p.licoesFeitas, licaoId] } },
-        sequencia: registrarDiaAtivo(e),
+        ...comDiaAtivo(e),
       };
     });
   },
@@ -229,6 +277,7 @@ export const acoes = {
         ...e,
         xp: e.xp + (primeiraVez ? XP.quiz : 0),
         progresso: { ...e.progresso, [moduloId]: { ...p, quizAcertos: Math.max(acertos, p.quizAcertos ?? 0) } },
+        ...comDiaAtivo(e),
       };
     });
   },
@@ -272,4 +321,14 @@ export function trocasRestantes(e: Estado) {
 export function nivelXP(xp: number) {
   const nivel = Math.floor(xp / 500) + 1;
   return { nivel, noNivel: xp % 500, paraProximo: 500 };
+}
+
+/**
+ * Para onde levar a pessoa depois de entrar ou criar a conta: contas novas veem o tour primeiro
+ * (o modo demonstração, sem conta, pula direto), depois o diagnóstico e só então o painel.
+ */
+export function proximaTela(e: Estado | null | undefined): string {
+  if (!e) return "/";
+  if (e.usuarioId && !e.tourVisto) return "/bem-vindo";
+  return e.diagnostico ? "/inicio" : "/diagnostico";
 }

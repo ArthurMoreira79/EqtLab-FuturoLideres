@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import type { CSSProperties } from "react";
 import { Button, Card, Chip, ProgressBar, buttonVariants } from "@heroui/react";
 import { Check, Compass, Flame, Handshake, Lock, MessageSquareText, Route, Sparkles, Target, Trophy, Users, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Abertura, RaiosDeFundo, Revelar, usePose } from "@/components/animacoes";
 import type { Pose } from "@/components/animacoes";
-import { BOTAO_3D, CARTAO_JOGO, Clara, LINK_TEXTO, LogoMarca, Nuvens } from "@/components/jogo";
+import { BOTAO_3D, BOTAO_3D_CLARO_PEQUENO, CARTAO_JOGO, ClaraClassica, LINK_TEXTO, LogoMarca, Nuvens } from "@/components/jogo";
 import { TemaToggle } from "@/components/TemaToggle";
 import { cx } from "@/components/ui";
 import { competencia } from "@/lib/competencias";
@@ -109,23 +109,18 @@ function CartaoDaClara({ pose }: { pose: Pose }) {
   );
 }
 
+/** Atraso da entrada em cascata (lido pela regra `.entra` no CSS). */
+const atraso = (ms: number) => ({ "--atraso": `${ms}ms` }) as CSSProperties;
+
 export default function Boasvindas() {
   const estado = useEstado();
   const router = useRouter();
   const pose = usePose();
-  const [aberto, setAberto] = useState(false);
-  const abrir = useCallback(() => setAberto(true), []);
 
   function explorarDemo() {
     acoes.carregarDemo(estadoDemo());
     router.push("/inicio");
   }
-
-  // Elementos do topo entram em cascata assim que a tela de abertura sai.
-  const entrada = (ms: number) => ({
-    className: aberto ? "animate-entrar" : "opacity-0",
-    style: { animationDelay: `${ms}ms` },
-  });
 
   const primeiroNome = estado?.perfil.nome.split(" ")[0];
   const destino = estado ? (estado.diagnostico ? "/inicio" : "/diagnostico") : "/cadastro";
@@ -133,37 +128,44 @@ export default function Boasvindas() {
 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-white text-heading dark:bg-bg">
-      <Abertura aoSair={abrir} />
+      <Abertura />
 
       {/* Abertura: céu, mascote saindo das nuvens */}
       <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#dff3ff] via-[#eef9ff] to-white dark:from-[#11144a] dark:via-[#0f1240] dark:to-bg">
         <RaiosDeFundo />
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
           <LogoMarca largura={120} />
-          <TemaToggle className="text-heading hover:bg-white/60 dark:hover:bg-white/10" />
+          <div className="flex items-center gap-2">
+            {!estado && (
+              <Link href="/entrar" className={cx(buttonVariants({ variant: "secondary", size: "sm" }), BOTAO_3D_CLARO_PEQUENO)}>
+                Já tenho conta
+              </Link>
+            )}
+            <TemaToggle className="text-heading hover:bg-white/60 dark:hover:bg-white/10" />
+          </div>
         </header>
 
         <div className="mx-auto grid w-full max-w-6xl items-end gap-4 px-5 sm:px-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="flex flex-col items-center gap-6 pb-4 text-center lg:items-start lg:pb-24 lg:text-left">
-            <div {...entrada(0)}>
+            <div className="entra" style={atraso(0)}>
               <Chip color="accent" variant="soft">
                 <Chip.Label>Desafio 6 · Hackathon Equatorial</Chip.Label>
               </Chip>
             </div>
             <div className="flex flex-col gap-3">
-              <span {...entrada(100)} className={cx("font-display text-2xl font-extrabold italic text-[#1b8fe6] dark:text-ciano", entrada(100).className)}>
+              <span className={cx("font-display text-2xl font-extrabold italic text-[#1b8fe6] dark:text-ciano", "entra")} style={atraso(100)}>
                 <Zap aria-hidden className="mr-1 inline size-6 -translate-y-0.5 animate-faiscar fill-[#ffd23f] text-[#ff9f1c]" />
                 Futuro Líderes
               </span>
-              <h1 {...entrada(200)} className={cx("text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl", entrada(200).className)}>
+              <h1 className={cx("text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl", "entra")} style={atraso(200)}>
                 Vire o líder em quem a sua equipe confia
               </h1>
             </div>
-            <p {...entrada(320)} className={cx("max-w-xl text-lg leading-relaxed text-muted", entrada(320).className)}>
+            <p className={cx("max-w-xl text-lg leading-relaxed text-muted", "entra")} style={atraso(320)}>
               Você foi promovido por ser bom no que faz. Agora, treine liderança como um jogo: missões curtas todo dia,
               feedback imediato da IA e uma evolução que dá para ver.
             </p>
-            <div {...entrada(440)} className={cx("flex w-full max-w-sm flex-col items-center gap-5 lg:items-start", entrada(440).className)}>
+            <div className={cx("flex w-full max-w-sm flex-col items-center gap-5 lg:items-start", "entra")} style={atraso(440)}>
               <Link href={destino} className={cx(buttonVariants({ variant: "primary", size: "lg" }), BOTAO_3D, "sm:w-full")}>
                 {rotuloCta}
               </Link>
@@ -174,7 +176,7 @@ export default function Boasvindas() {
           </div>
 
           {/* Cena: painel que reage à pose da Clara */}
-          <div {...entrada(250)} className={cx("relative mx-auto h-[540px] w-full max-w-md", entrada(250).className)}>
+          <div className={cx("relative mx-auto h-[540px] w-full max-w-md", "entra")} style={atraso(250)}>
             <div
               aria-hidden
               className="absolute inset-x-3 top-0 h-[330px] rounded-[2.5rem] border-[6px] border-[#bfe3f8] bg-[#dff3ff] dark:border-line dark:bg-sunken"
@@ -185,7 +187,7 @@ export default function Boasvindas() {
             <CartaoDaClara pose={pose} />
 
             <div className="absolute inset-x-0 bottom-0 flex justify-center">
-              <Clara largura={240} prioridade />
+              <ClaraClassica largura={240} prioridade />
             </div>
             <Nuvens className="z-20 h-32" />
 
@@ -297,13 +299,13 @@ export default function Boasvindas() {
                 </div>
               </Card.Header>
               <Card.Content className="flex flex-col gap-3">
-                <ProgressBar aria-label="XP até o nível 2" value={0} minValue={0} maxValue={500}>
+                <ProgressBar aria-label="XP até o nível 2 (exemplo)" value={200} minValue={0} maxValue={500}>
                   <div className="flex justify-between text-sm font-extrabold">
                     <span>Nível 1</span>
-                    <span>0 / 500 XP</span>
+                    <span>200 / 500 XP</span>
                   </div>
                   <ProgressBar.Track className="h-4">
-                    <ProgressBar.Fill />
+                    <ProgressBar.Fill className="group-data-[visivel=true]/rev:animate-encher" />
                   </ProgressBar.Track>
                 </ProgressBar>
                 <p className="text-sm text-muted">Diagnóstico +50 XP · Missão +40 XP · Desafio +60 XP</p>

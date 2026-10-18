@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { Onboarding } from "@/components/Onboarding";
-import { Radar } from "@/components/Radar";
-import { Carregando, SeloIA, botao, cx } from "@/components/ui";
+import { BarrasCompetencias } from "@/components/BarrasCompetencias";
+import { Carregando, botao, cx } from "@/components/ui";
 import { competencia, forcasEAtencao, NOMES_NIVEL, nivelDe } from "@/lib/competencias";
 import { useEstado } from "@/lib/estado";
 
@@ -29,21 +29,18 @@ export default function Resultado() {
 
   const p = estado.diagnostico.pontuacoes;
   const { forcas, atencao } = forcasEAtencao(p);
-  const aberta = estado.submissoes.find((s) => s.origem === "diagnostico");
 
   return (
     <Onboarding sobre="Relatório de perfil" titulo={`Seu ponto de partida, ${estado.perfil.nome.split(" ")[0]}`}>
       <div className="grid gap-6 md:grid-cols-[1.1fr_1fr]">
-        <div className="rounded-2xl border border-line bg-card p-4">
-          <Radar atual={p} rotulo="Radar de competências do diagnóstico inicial" />
-        </div>
+        <BarrasCompetencias pontuacoes={p} />
         <div className="flex flex-col gap-4">
-          <SeloIA texto="Resumo do diagnóstico" />
+          <h2 className="text-lg font-bold">O que suas escolhas mostram</h2>
           <p className="leading-relaxed">
-            Você parte com mais segurança em <strong>{competencia(forcas[0]).nome.toLowerCase()}</strong> e{" "}
+            Suas respostas mostram sinais positivos em <strong>{competencia(forcas[0]).nome.toLowerCase()}</strong> e{" "}
             <strong>{competencia(forcas[1]).curto.toLowerCase()}</strong>. Os pontos de atenção estão em{" "}
             <strong>{competencia(atencao[0]).nome.toLowerCase()}</strong> e{" "}
-            <strong>{competencia(atencao[1]).curto.toLowerCase()}</strong> — é por eles que sua trilha começa.
+            <strong>{competencia(atencao[1]).curto.toLowerCase()}</strong>. Você vai aprender desde o básico, com esses temas em destaque na trilha.
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-tint-cyan p-3">
@@ -59,12 +56,7 @@ export default function Resultado() {
               ))}
             </div>
           </div>
-          {aberta && (
-            <p className="text-sm text-muted">
-              Sua resposta aberta recebeu nota {aberta.feedback.nota_geral.toLocaleString("pt-BR")} — o feedback completo
-              fica no seu perfil.
-            </p>
-          )}
+
         </div>
       </div>
 

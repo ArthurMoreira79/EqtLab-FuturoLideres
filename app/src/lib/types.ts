@@ -17,6 +17,8 @@ export type Nivel = "iniciante" | "em_desenvolvimento" | "proficiente" | "refere
 
 export interface Perfil {
   nome: string;
+  /** Vem da conta no servidor; o modo demonstração não tem. */
+  email?: string;
   cargo: string;
   setor: string;
   tipoEquipe: string;
