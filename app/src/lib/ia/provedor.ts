@@ -1,4 +1,5 @@
 import "server-only";
+import type { PedidoChat } from "@/lib/clara/chat";
 import type { Desafio } from "@/lib/types";
 import type { PedidoRelatorio } from "./schema";
 
@@ -16,6 +17,7 @@ export interface EntradaAvaliacao {
  */
 export interface ProvedorIA {
   nome: string;
+  conversar(pedido: PedidoChat): Promise<unknown>;
   avaliar(entrada: EntradaAvaliacao): Promise<unknown>;
   gerarRelatorio(pedido: PedidoRelatorio): Promise<unknown>;
 }

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Flame, Plus, RefreshCw, Target, Trophy, Zap } from "lucide-react";
 import { MinhaEquipe } from "@/components/rede/MinhaEquipe";
 import { Clara } from "@/components/jogo";
-import { CaminhoTrilha, montarUnidades } from "@/components/painel/CaminhoTrilha";
+import { CaminhoTrilha } from "@/components/painel/CaminhoTrilha";
 import { BoasVindasClara } from "@/components/painel/BoasVindasClara";
 import { Constancia } from "@/components/painel/Constancia";
 import { Radar } from "@/components/Radar";
@@ -21,6 +21,7 @@ import {
   formatarData,
   tempoRelativo,
 } from "@/components/ui";
+import { montarUnidades } from "@/lib/trilha";
 import { api } from "@/lib/api";
 import { competencia, forcasEAtencao } from "@/lib/competencias";
 import { acoes, diasDesde, hoje, nivelXP, useEstado, type Estado } from "@/lib/estado";

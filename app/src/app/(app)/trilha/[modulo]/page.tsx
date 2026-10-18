@@ -2,231 +2,109 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Check, ChevronDown, Lock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, BookOpen, Check, Lock, Target, Trophy } from "lucide-react";
 import { RespostaDesafio } from "@/components/RespostaDesafio";
-import { Aviso, Barra, Card, Carregando, TituloPagina, botao, cx } from "@/components/ui";
+import { LicaoInterativa } from "@/components/trilha/LicaoInterativa";
+import { QuizInterativo } from "@/components/trilha/QuizInterativo";
+import { VideoFeedback } from "@/components/trilha/VideoFeedback";
+import { Aviso, Barra, Carregando, TituloPagina, botao, cx } from "@/components/ui";
 import { api } from "@/lib/api";
 import { obterModulo, temConteudo } from "@/lib/conteudo/modulos";
 import { acoes, NOTA_MINIMA, useEstado, type Estado } from "@/lib/estado";
-import { progressoModulo, statusModulo } from "@/lib/trilha";
-import type { DesafioPublico, Modulo, PerguntaQuiz } from "@/lib/types";
+import { montarUnidades, progressoModulo, statusModulo } from "@/lib/trilha";
+import type { DesafioPublico, Modulo } from "@/lib/types";
 
 export default function PaginaModulo() {
   const { modulo: id } = useParams<{ modulo: string }>();
   const estado = useEstado();
   if (!estado) return null;
   const m = obterModulo(id);
-
   if (!m) return <Aviso>Módulo não encontrado.</Aviso>;
   const st = statusModulo(estado, m);
-  if (st === "producao" || st === "bloqueado" || !temConteudo(m)) {
-    return (
-      <div className="mx-auto flex max-w-3xl flex-col gap-4">
-        <TituloPagina sobre="Trilha">{m.titulo}</TituloPagina>
-        <Aviso tipo="info">
-          {st === "bloqueado"
-            ? "Conclua os módulos anteriores da sua trilha para liberar este."
-            : "O conteúdo deste módulo está em produção e entra numa próxima versão."}
-        </Aviso>
-        <Link href="/trilha" className={cx(botao.secundario, "self-start")}>
-          Voltar para a trilha
-        </Link>
-      </div>
-    );
-  }
-  return <ConteudoModulo estado={estado} modulo={m} />;
+  if (st === "producao" || st === "bloqueado" || !temConteudo(m)) return <div className="mx-auto flex max-w-3xl flex-col gap-4">
+    <TituloPagina sobre="Trilha">{m.titulo}</TituloPagina>
+    <Aviso tipo="info">{st === "bloqueado" ? "Conclua os módulos anteriores da sua trilha para liberar este." : "O conteúdo deste módulo está em produção e entra numa próxima versão."}</Aviso>
+    <Link href="/trilha" className={cx(botao.secundario, "self-start")}>Voltar para a trilha</Link>
+  </div>;
+  return <ConteudoModulo key={m.id} estado={estado} modulo={m} />;
 }
 
 function ConteudoModulo({ estado, modulo }: { estado: Estado; modulo: Modulo }) {
+  const { unidades } = montarUnidades(estado);
+  const unidade = unidades.find((u) => u.modulo.id === modulo.id);
+  const proximoModulo = unidade ? unidades[unidade.numero] : undefined;
   const prog = estado.progresso[modulo.id];
   const { fracao } = progressoModulo(estado, modulo);
   const licoesOk = modulo.licoes.every((l) => prog?.licoesFeitas.includes(l.id));
   const quizOk = prog?.quizAcertos !== undefined;
-  const [aberta, setAberta] = useState<string | null>(
-    modulo.licoes.find((l) => !prog?.licoesFeitas.includes(l.id))?.id ?? null,
-  );
-
-  return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <Link href="/trilha" className="inline-flex items-center gap-1.5 self-start text-sm font-semibold text-link hover:underline">
-        <ArrowLeft aria-hidden className="size-4" /> Trilha
-      </Link>
-      <TituloPagina sobre={prog?.concluido ? "Módulo concluído" : "Módulo"} descricao={modulo.descricao}>
-        {modulo.titulo}
-      </TituloPagina>
-      <div className="flex items-center gap-3">
-        <Barra valor={fracao} className="flex-1" />
-        <span className="font-bold">{Math.round(fracao * 100)}%</span>
-      </div>
-
-      <section aria-labelledby="licoes" className="flex flex-col gap-3">
-        <h2 id="licoes" className="text-lg font-bold">
-          Lições
-        </h2>
-        {modulo.licoes.map((l, i) => {
-          const feita = prog?.licoesFeitas.includes(l.id);
-          const expandida = aberta === l.id;
-          return (
-            <article key={l.id} className="rounded-2xl border border-line bg-card">
-              <h3>
-                <button
-                  type="button"
-                  aria-expanded={expandida}
-                  onClick={() => setAberta(expandida ? null : l.id)}
-                  className="flex min-h-14 w-full items-center gap-3 px-4 text-left"
-                >
-                  <span
-                    className={cx(
-                      "flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold",
-                      feita ? "bg-ciano text-noite" : "bg-sunken text-muted",
-                    )}
-                  >
-                    {feita ? <Check aria-hidden className="size-4" strokeWidth={3} /> : i + 1}
-                  </span>
-                  <span className="flex-1 font-semibold">{l.titulo}</span>
-                  <span className="text-sm text-muted">{l.minutos} min</span>
-                  <ChevronDown aria-hidden className={cx("size-4 transition-transform", expandida && "rotate-180")} />
-                </button>
-              </h3>
-              {expandida && (
-                <div className="flex flex-col gap-3 px-4 pb-5 leading-relaxed">
-                  {l.paragrafos.map((p) => (
-                    <p key={p}>{p}</p>
-                  ))}
-                  <div className="rounded-xl bg-sunken p-4">
-                    <span className="text-xs font-bold uppercase tracking-wider text-tint-purple-ink">Exemplo</span>
-                    <p className="mt-1">{l.exemplo}</p>
-                  </div>
-                  <div className="rounded-xl bg-tint-cyan p-4">
-                    <span className="text-xs font-bold uppercase tracking-wider text-tint-cyan-ink">Na prática</span>
-                    <p className="mt-1">{l.naPratica}</p>
-                  </div>
-                  {!feita && (
-                    <button
-                      type="button"
-                      className={cx(botao.primario, "self-start")}
-                      onClick={() => {
-                        acoes.marcarLicao(modulo.id, l.id);
-                        setAberta(modulo.licoes[i + 1]?.id ?? null);
-                      }}
-                    >
-                      Concluir lição · +10 XP
-                    </button>
-                  )}
-                </div>
-              )}
-            </article>
-          );
-        })}
-      </section>
-
-      <Quiz modulo={modulo} perguntas={modulo.quiz} acertosSalvos={prog?.quizAcertos} />
-
-      <section aria-labelledby="desafio" className="flex flex-col gap-3">
-        <h2 id="desafio" className="text-lg font-bold">
-          Desafio prático
-        </h2>
-        {licoesOk && quizOk && modulo.desafioId ? (
-          <Desafio estado={estado} modulo={modulo} desafioId={modulo.desafioId} />
-        ) : (
-          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line p-5 text-muted">
-            <Lock aria-hidden className="size-5 shrink-0" />
-            Conclua as lições e o quiz para liberar o desafio. Ele é avaliado pela IA e conclui o módulo com nota{" "}
-            {NOTA_MINIMA} ou mais.
-          </div>
-        )}
-      </section>
+  const [etapa, setEtapa] = useState(() => {
+    const primeira = modulo.licoes.find((l) => !prog?.licoesFeitas.includes(l.id))?.id ?? (!quizOk ? "quiz" : "desafio");
+    if (typeof window === "undefined") return primeira;
+    const pedida = new URLSearchParams(window.location.search).get("etapa") ?? window.location.hash.slice(1);
+    const i = modulo.licoes.findIndex((l) => l.id === pedida);
+    if (i >= 0 && modulo.licoes.slice(0, i).every((l) => prog?.licoesFeitas.includes(l.id))) return pedida;
+    if ((pedida === "quiz" && licoesOk) || (pedida === "desafio" && licoesOk && quizOk)) return pedida;
+    return primeira;
+  });
+  const cabecalho = useRef<HTMLDivElement>(null);
+  useEffect(() => { cabecalho.current?.focus(); }, [etapa]);
+  function ir(id: string) {
+    setEtapa(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set("etapa", id);
+    url.hash = id === "quiz" || id === "desafio" ? id : "licoes";
+    window.history.replaceState(null, "", url);
+  }
+  const indice = modulo.licoes.findIndex((l) => l.id === etapa);
+  const licao = modulo.licoes[indice];
+  const fase = licao ? "aprender" : etapa === "quiz" ? "testar" : "aplicar";
+  const passo = indice >= 0 ? indice + 1 : etapa === "quiz" ? modulo.licoes.length + 1 : modulo.licoes.length + 2;
+  const fases = [
+    { id: "aprender", texto: "Aprender", Icone: BookOpen, destino: modulo.licoes[0].id, disponivel: true, feita: licoesOk },
+    { id: "testar", texto: "Testar", Icone: Target, destino: "quiz", disponivel: licoesOk, feita: quizOk },
+    { id: "aplicar", texto: "Aplicar", Icone: Trophy, destino: "desafio", disponivel: licoesOk && quizOk, feita: !!prog?.concluido },
+  ];
+  return <div className="mx-auto flex max-w-3xl flex-col gap-5 pb-6">
+    <Link href="/trilha" className="inline-flex min-h-10 items-center gap-1.5 self-start text-sm font-semibold text-link hover:underline"><ArrowLeft aria-hidden className="size-4" /> Voltar à trilha</Link>
+    <div ref={cabecalho} tabIndex={-1} className="scroll-mt-6">
+      <TituloPagina sobre={`Módulo ${unidade?.numero ?? 1} de ${unidades.length} · Etapa ${passo} de ${modulo.licoes.length + 2}${prog?.concluido ? " · concluído" : ""}`} descricao="Um passo de cada vez: entenda, experimente e leve para o dia a dia.">{modulo.titulo}</TituloPagina>
     </div>
-  );
+    <div className="flex items-center gap-3"><Barra valor={fracao} className="flex-1" /><span className="text-sm font-extrabold tabular-nums">{Math.round(fracao * 100)}%</span></div>
+    {prog?.concluido && proximoModulo && <Link href={`/trilha/${proximoModulo.modulo.id}`} className={cx(botao.primario, "self-start")}>Continuar para o módulo {proximoModulo.numero}</Link>}
+    <nav aria-label="Etapas do módulo" className="grid grid-cols-3 gap-2">{fases.map(({ id, texto, Icone, destino, disponivel, feita }) => <button key={id} type="button" disabled={!disponivel} aria-current={fase === id ? "step" : undefined}
+      onClick={() => ir(destino)} className={cx("flex min-h-14 items-center justify-center gap-2 rounded-2xl border-2 px-2 text-xs font-extrabold sm:text-sm", fase === id ? "border-primary bg-primary text-on-primary" : "border-line bg-card text-muted", !disponivel && "opacity-50")}>
+      {!disponivel ? <Lock aria-hidden className="size-4" /> : feita ? <Check aria-hidden className="size-4" /> : <Icone aria-hidden className="size-4" />}{texto}
+    </button>)}</nav>
+    {licao ? <section id="licoes" className="flex scroll-mt-6 flex-col gap-5" aria-label="Lições guiadas">
+      <div className="flex items-center justify-between gap-3"><p className="text-sm font-bold text-muted">Lição {indice + 1} de {modulo.licoes.length}</p><nav aria-label="Escolher lição" className="flex gap-2">{modulo.licoes.map((l, i) => {
+        const feita = !!prog?.licoesFeitas.includes(l.id);
+        const disponivel = modulo.licoes.slice(0, i).every((anterior) => prog?.licoesFeitas.includes(anterior.id));
+        return <button key={l.id} type="button" disabled={!disponivel} title={l.titulo} aria-label={`Lição ${i + 1}: ${l.titulo}${feita ? ", concluída" : ""}`} aria-current={etapa === l.id ? "step" : undefined}
+          onClick={() => ir(l.id)} className={cx("grid size-10 place-items-center rounded-full border-2 text-sm font-extrabold", etapa === l.id ? "border-primary bg-primary text-on-primary" : "border-line bg-card", !disponivel && "opacity-40")}>
+          {feita ? <Check aria-hidden className="size-4" /> : i + 1}
+        </button>;
+      })}</nav></div>
+      {modulo.id === "feedback" && indice === 0 && <VideoFeedback />}
+      <LicaoInterativa key={licao.id} licao={licao} feita={!!prog?.licoesFeitas.includes(licao.id)} aoConcluir={() => {
+        acoes.marcarLicao(modulo.id, licao.id);
+        ir(modulo.licoes[indice + 1]?.id ?? "quiz");
+      }} />
+      {indice > 0 && <button type="button" className="inline-flex min-h-11 items-center gap-2 self-start text-sm font-bold text-link" onClick={() => ir(modulo.licoes[indice - 1].id)}><ArrowLeft aria-hidden className="size-4" /> Rever lição anterior</button>}
+    </section> : etapa === "quiz" && licoesOk ? <section id="quiz" className="scroll-mt-6"><QuizInterativo modulo={modulo} acertosSalvos={prog?.quizAcertos} aoAvancar={() => ir("desafio")} /></section> : <section id="desafio" className="flex scroll-mt-6 flex-col gap-4">
+      <div className="rounded-2xl border border-line bg-card p-5"><p className="text-xs font-extrabold uppercase tracking-wider text-link">Agora é com você</p><h2 className="mt-1 text-xl font-extrabold">Uma situação real para praticar</h2><p className="mt-2 text-sm leading-relaxed text-muted">Diga o que faria, o que falaria e como acompanharia o resultado. A análise mostra onde você acertou e como melhorar.</p></div>
+      {licoesOk && quizOk && modulo.desafioId ? <Desafio key={modulo.id} estado={estado} modulo={modulo} desafioId={modulo.desafioId} /> : <Aviso tipo="info">Conclua as lições e o quiz para liberar este desafio.</Aviso>}
+    </section>}
+  </div>;
 }
-
-function Quiz({ modulo, perguntas, acertosSalvos }: { modulo: Modulo; perguntas: PerguntaQuiz[]; acertosSalvos?: number }) {
-  const [respostas, setRespostas] = useState<Record<number, number>>({});
-  const [corrigido, setCorrigido] = useState(false);
-  const acertos = perguntas.filter((p, i) => respostas[i] === p.correta).length;
-
-  return (
-    <Card as="section" aria-labelledby="quiz" className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 id="quiz" className="text-lg font-bold">
-          Quiz rápido
-        </h2>
-        {acertosSalvos !== undefined && (
-          <span className="text-sm text-muted">
-            Melhor resultado: {acertosSalvos}/{perguntas.length}
-          </span>
-        )}
-      </div>
-      {perguntas.map((p, i) => (
-        <fieldset key={p.pergunta} className="flex flex-col gap-2">
-          <legend className="mb-2 font-semibold">
-            {i + 1}. {p.pergunta}
-          </legend>
-          {p.opcoes.map((o, j) => {
-            const marcado = respostas[i] === j;
-            const certo = corrigido && j === p.correta;
-            const errado = corrigido && marcado && j !== p.correta;
-            return (
-              <label
-                key={o}
-                className={cx(
-                  "flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 px-3.5 py-2.5",
-                  certo ? "border-ciano bg-tint-cyan" : errado ? "border-tint-risk-ink bg-tint-risk" : marcado ? "border-primary bg-selected" : "border-line",
-                )}
-              >
-                <input
-                  type="radio"
-                  name={`q${i}`}
-                  checked={marcado}
-                  disabled={corrigido}
-                  onChange={() => setRespostas((r) => ({ ...r, [i]: j }))}
-                  className="size-5 accent-[var(--primary)]"
-                />
-                <span>{o}</span>
-              </label>
-            );
-          })}
-          {corrigido && <p className="text-sm text-muted">{p.explicacao}</p>}
-        </fieldset>
-      ))}
-      {corrigido ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="font-bold" role="status">
-            Você acertou {acertos} de {perguntas.length}.
-          </span>
-          <button
-            type="button"
-            className={botao.secundario}
-            onClick={() => {
-              setRespostas({});
-              setCorrigido(false);
-            }}
-          >
-            Refazer
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled={Object.keys(respostas).length < perguntas.length}
-          className={cx(botao.primario, "self-start")}
-          onClick={() => {
-            setCorrigido(true);
-            acoes.salvarQuiz(modulo.id, acertos);
-          }}
-        >
-          Corrigir
-        </button>
-      )}
-    </Card>
-  );
-}
-
 function Desafio({ estado, modulo, desafioId }: { estado: Estado; modulo: Modulo; desafioId: string }) {
   const [desafio, setDesafio] = useState<DesafioPublico | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const nota = estado.progresso[modulo.id]?.desafioNota;
+  const { unidades } = montarUnidades(estado);
+  const indice = unidades.findIndex((u) => u.modulo.id === modulo.id);
+  const seguinte = unidades[indice + 1];
+  const podeContinuar = nota !== undefined && nota >= NOTA_MINIMA && seguinte;
 
   useEffect(() => {
     api.desafio(desafioId).then(setDesafio).catch((e) => setErro(e.message));
@@ -253,8 +131,8 @@ function Desafio({ estado, modulo, desafioId }: { estado: Estado; modulo: Modulo
         origem="desafio"
         moduloId={modulo.id}
         extras={
-          <Link href="/trilha" className={cx(botao.primario, "self-start")}>
-            Voltar para a trilha
+          <Link href={podeContinuar ? `/trilha/${seguinte.modulo.id}` : "/trilha"} className={cx(botao.primario, "self-start")}>
+            {podeContinuar ? `Continuar para o módulo ${seguinte.numero}` : "Voltar para a trilha"}
           </Link>
         }
       />

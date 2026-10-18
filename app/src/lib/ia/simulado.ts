@@ -1,4 +1,5 @@
 import "server-only";
+import { respostaGuiada } from "@/lib/clara/chat";
 import { MIN_PALAVRAS_RESPOSTA } from "./limites";
 import { competencia, forcasEAtencao, nivelDe, SLUGS } from "@/lib/competencias";
 import { MODULOS } from "@/lib/conteudo/modulos";
@@ -40,6 +41,8 @@ const limitar = (n: number, min: number, max: number) => Math.min(max, Math.max(
 
 export const provedorSimulado: ProvedorIA = {
   nome: "simulado",
+
+  async conversar(pedido) { return { resposta: respostaGuiada(pedido) }; },
 
   async avaliar({ desafio, resposta, opcaoEscolhida }): Promise<ResultadoAvaliacao> {
     await new Promise((r) => setTimeout(r, 900)); // simula a latência de uma IA

@@ -8,6 +8,7 @@ import { Onboarding } from "@/components/Onboarding";
 import { BarrasCompetencias } from "@/components/BarrasCompetencias";
 import { Carregando, botao, cx } from "@/components/ui";
 import { competencia, forcasEAtencao, NOMES_NIVEL, nivelDe } from "@/lib/competencias";
+import { montarUnidades } from "@/lib/trilha";
 import { useEstado } from "@/lib/estado";
 
 export default function Resultado() {
@@ -63,19 +64,14 @@ export default function Resultado() {
       <section className="mt-8 flex flex-col gap-3">
         <h2 className="text-lg font-bold">Sua trilha recomendada</h2>
         <ol className="flex flex-wrap gap-2">
-          {estado.trilha.map((s, i) => (
-            <li
-              key={s}
-              className={cx(
-                "rounded-lg px-3 py-2 text-sm font-semibold",
-                i < 2 ? "bg-primary text-on-primary" : "border border-line bg-card",
-              )}
-            >
-              {i + 1}. {competencia(s).curto}
-              <span className="sr-only"> — nível {NOMES_NIVEL[nivelDe(p[s])]}</span>
+          {montarUnidades(estado).unidades.map((u) => (
+            <li key={u.modulo.id} className={cx("rounded-lg px-3 py-2 text-sm font-semibold", u.numero === 1 ? "bg-primary text-on-primary" : "border border-line bg-card")}>
+              Módulo {u.numero}. {competencia(u.modulo.competencia).curto}
+              <span className="sr-only"> — nível {NOMES_NIVEL[nivelDe(p[u.modulo.competencia])]}</span>
             </li>
           ))}
         </ol>
+        <p className="text-sm text-muted">Cada módulo tem lições, quiz e desafio. Outros temas chegam em breve.</p>
       </section>
 
       <div className="mt-8 flex justify-end">

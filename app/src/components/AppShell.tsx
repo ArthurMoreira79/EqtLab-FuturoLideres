@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CircleHelp, Home, Route, Target, UserRound, Users } from "lucide-react";
 import { nivelXP, proximaTela, useEstado } from "@/lib/estado";
+import { ChatClara } from "./ChatClara";
 import { BotaoSair } from "./BotaoSair";
 import { BOTAO_3D_PEQUENO, LogoMarca } from "./jogo";
 import { NomeProduto } from "./Logo";
@@ -146,6 +147,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
       </div>
+      <ChatClara key={estado.usuarioId ?? estado.perfil.email ?? "demo"} usuarioId={estado.usuarioId} />
     </div>
   );
 }

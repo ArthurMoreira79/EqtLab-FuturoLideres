@@ -1,0 +1,51 @@
+// Verifica o modelo compartilhado sem precisar iniciar o Next ou modificar dados de usuário.
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import { createRequire } from "node:module";
+import ts from "typescript";
+const require = createRequire(import.meta.url);
+const raiz = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../src");
+const cache = new Map();
+function carregar(arquivo) {
+  if (cache.has(arquivo)) return cache.get(arquivo).exports;
+  const modulo = { exports: {} }; cache.set(arquivo, modulo);
+  const codigo = ts.transpileModule(fs.readFileSync(arquivo, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const localRequire = (nome) => {
+    if (!nome.startsWith("@/") && !nome.startsWith(".")) return require(nome);
+    const base = nome.startsWith("@/") ? path.join(raiz, nome.slice(2)) : path.resolve(path.dirname(arquivo), nome);
+    return carregar(`${base}.ts`);
+  };
+  vm.runInNewContext(codigo, { module: modulo, exports: modulo.exports, require: localRequire, Set, Map }, { filename: arquivo });
+  return modulo.exports;
+}
+const { montarUnidades, statusModulo } = carregar(path.join(raiz, "lib/trilha.ts"));
+const { obterModulo } = carregar(path.join(raiz, "lib/conteudo/modulos.ts"));
+const estado = { trilha: ["feedback", "desenvolvimento", "desempenho", "conflitos", "decisao", "delegacao", "comunicacao", "inteligencia_emocional"], progresso: {} };
+let modelo = montarUnidades(estado);
+assert.equal(JSON.stringify(modelo.unidades.map((u) => [u.modulo.id, u.numero])), JSON.stringify([["feedback", 1], ["conflitos", 2]]));
+assert.equal(modelo.emProducao.length, 6);
+assert.equal(modelo.proximo.id, "f1");
+assert.equal(statusModulo(estado, obterModulo("conflitos")), "bloqueado");
+assert.equal(modelo.unidades[0].nos.length, 6);
+assert.equal(modelo.unidades[1].nos.every((n) => n.situacao === "bloqueado"), true);
+estado.progresso.feedback = { licoesFeitas: ["f1"], concluido: false };
+assert.equal(montarUnidades(estado).proximo.id, "f2");
+estado.progresso.conflitos = { licoesFeitas: ["c1"], concluido: false };
+assert.equal(statusModulo(estado, obterModulo("conflitos")), "bloqueado", "Progresso legado não deve liberar outro módulo antes da conclusão do anterior");
+estado.progresso.feedback.licoesFeitas = ["f1", "f2", "f3", "f4", "id-antigo"];
+assert.equal(montarUnidades(estado).proximo.id, "feedback-quiz");
+assert.equal(montarUnidades(estado).proximo.numero, 5);
+estado.progresso.feedback.quizAcertos = 0;
+assert.equal(montarUnidades(estado).proximo.id, "feedback-desafio");
+assert.equal(montarUnidades(estado).proximo.numero, 6);
+estado.progresso.feedback.concluido = true;
+modelo = montarUnidades(estado);
+assert.equal(modelo.proximo.id, "c2");
+assert.equal(modelo.unidades[1].numero, 2);
+assert.equal(modelo.proximo.href, "/trilha/conflitos?etapa=c2#licoes");
+estado.progresso.conflitos = { licoesFeitas: ["c1", "c2", "c3", "c4"], quizAcertos: 3, concluido: true };
+assert.equal(montarUnidades(estado).proximo, null);
+assert.equal(statusModulo(estado, obterModulo("desenvolvimento")), "producao");
+console.log("Trilha validada: numeração contínua, etapas únicas, desbloqueio sequencial, links, quiz com zero acertos e progresso legado.");

@@ -7,10 +7,8 @@ import type { LucideIcon } from "lucide-react";
 import { Clara, type PoseClara } from "@/components/jogo";
 import { cx } from "@/components/ui";
 import { forcasEAtencao } from "@/lib/competencias";
-import { moduloDaCompetencia, temConteudo } from "@/lib/conteudo/modulos";
 import type { Estado } from "@/lib/estado";
-import { progressoModulo, statusModulo, type StatusModulo } from "@/lib/trilha";
-import type { Modulo } from "@/lib/types";
+import { montarUnidades, progressoModulo, type No, type Unidade, type TipoNo } from "@/lib/trilha";
 
 /**
  * Trilha em “caminho” (como o aprender do Duolingo, só que azul): cada passo de um módulo
@@ -18,65 +16,14 @@ import type { Modulo } from "@/lib/types";
  * A Clara acompanha o caminho: fica no ponto atual, pula até o ponto que você aponta e comenta.
  */
 
-type SituacaoNo = "feito" | "atual" | "bloqueado";
-type TipoNo = "licao" | "quiz" | "desafio" | "producao";
-
-export interface No {
-  id: string;
-  tipo: TipoNo;
-  titulo: string;
-  situacao: SituacaoNo;
-  href?: string;
-}
-
-export interface Unidade {
-  modulo: Modulo;
-  numero: number;
-  status: StatusModulo;
-  nos: No[];
-}
-
-/** Monta as unidades (módulos) e marca qual é o próximo passo. O primeiro passo pendente de um módulo aberto é o “atual”. */
-export function montarUnidades(estado: Estado): { unidades: Unidade[]; proximo: No | null } {
-  let proximo: No | null = null;
-  const unidades = estado.trilha.map((slug, i): Unidade => {
-    const m = moduloDaCompetencia(slug);
-    const status = statusModulo(estado, m);
-    const p = estado.progresso[m.id];
-    const aberto = status === "andamento" || status === "disponivel";
-
-    if (!temConteudo(m)) {
-      return { modulo: m, numero: i + 1, status, nos: [{ id: `${m.id}-prod`, tipo: "producao", titulo: m.titulo, situacao: "bloqueado" }] };
-    }
-
-    const passos: Omit<No, "situacao">[] = [
-      ...m.licoes.map((l) => ({ id: l.id, tipo: "licao" as const, titulo: l.titulo, href: `/trilha/${m.id}#licoes` })),
-      { id: `${m.id}-quiz`, tipo: "quiz" as const, titulo: "Quiz rápido", href: `/trilha/${m.id}#quiz` },
-      { id: `${m.id}-desafio`, tipo: "desafio" as const, titulo: "Desafio prático", href: `/trilha/${m.id}#desafio` },
-    ];
-    const feito = (n: Omit<No, "situacao">) =>
-      n.tipo === "licao" ? !!p?.licoesFeitas.includes(n.id) : n.tipo === "quiz" ? p?.quizAcertos !== undefined : !!p?.concluido;
-
-    const nos = passos.map((n): No => {
-      if (feito(n)) return { ...n, situacao: "feito" };
-      if (aberto && !proximo) {
-        const atual: No = { ...n, situacao: "atual" };
-        proximo = atual;
-        return atual;
-      }
-      return { ...n, situacao: "bloqueado" };
-    });
-    return { modulo: m, numero: i + 1, status, nos };
-  });
-  return { unidades, proximo };
-}
+export { montarUnidades } from "@/lib/trilha";
 
 const ICONE: Record<Exclude<TipoNo, "desafio">, LucideIcon> = { licao: BookOpen, quiz: Target, producao: Hammer };
 const ROTULO: Record<TipoNo, string> = { licao: "Lição", quiz: "Quiz", desafio: "Desafio", producao: "Em produção" };
 const XP_DO_PASSO: Record<TipoNo, number> = { licao: 10, quiz: 20, desafio: 60, producao: 0 };
 
 /** Deslocamento horizontal de cada ponto: desenha o zigue-zague do caminho. */
-const ONDA = [0, 34, 58, 34, 0, -34, -58, -34];
+const ONDA = [0, 26, 44, 26, 0, -26, -44, -26];
 
 /* ───────────── baú (desafio prático) ───────────── */
 
@@ -109,7 +56,7 @@ function Ponto({
 }) {
   const bloqueado = no.situacao === "bloqueado";
   const ehBau = no.tipo === "desafio";
-  const rotulo = `${ROTULO[no.tipo]}: ${no.titulo}${no.situacao === "feito" ? " (concluído)" : bloqueado ? " (bloqueado)" : ""}`;
+  const rotulo = `Etapa ${no.numero} de ${unidade.nos.length} · ${ROTULO[no.tipo]}: ${no.titulo}${no.situacao === "feito" ? " (concluído)" : bloqueado ? " (bloqueado)" : ""}`;
   const Icone = no.situacao === "feito" ? Check : bloqueado && no.tipo !== "producao" ? Lock : ICONE[no.tipo === "desafio" ? "licao" : no.tipo];
 
   const visual = ehBau ? (
@@ -149,9 +96,9 @@ function Ponto({
   };
 
   return (
-    <li className="flex flex-col items-center" style={{ transform: `translateX(${deslocamento}px)` }}>
+    <li className="flex min-w-0 flex-col items-center">
       {/* âncora do tamanho do círculo: o avatar mede a posição a partir dele */}
-      <div className="relative" data-no={no.id}>
+      <div className="relative" style={{ transform: `translateX(calc(${deslocamento}px - var(--recuo-etapa)))` }} data-no={no.id}>
         {no.situacao === "atual" && (
           <span className="absolute -top-12 left-1/2 z-10 -translate-x-1/2 animate-quicar whitespace-nowrap rounded-xl border-2 border-[#cfe9fb] bg-white px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-[#1478d0] shadow-[0_3px_0_#cfe9fb] dark:border-line dark:bg-card dark:text-ciano dark:shadow-none">
             Começar
@@ -177,25 +124,23 @@ function Ponto({
         )}
       </div>
 
-      {no.situacao === "atual" && no.href && <CartaoDoPasso no={no} unidade={unidade} compensar={deslocamento} />}
+      {no.situacao === "atual" && no.href && <CartaoDoPasso no={no} unidade={unidade}  />}
     </li>
   );
 }
 
 /** “Lição 3 de 6 · COMEÇAR +10 XP”, como o cartão que abre no ponto atual do Duolingo. */
-function CartaoDoPasso({ no, unidade, compensar }: { no: No; unidade: Unidade; compensar: number }) {
+function CartaoDoPasso({ no, unidade }: { no: No; unidade: Unidade }) {
   const indice = unidade.nos.filter((n) => n.tipo === "licao").findIndex((n) => n.id === no.id);
   const sobre =
     no.tipo === "licao" ? `Lição ${indice + 1} de ${unidade.modulo.licoes.length}` : no.tipo === "quiz" ? "Quiz rápido" : "Desafio prático";
   return (
     <div
-      // desfaz o deslocamento do ponto para o cartão ficar centrado na coluna
-      style={{ transform: `translateX(${-compensar}px)` }}
-      className="relative mt-5 w-[min(280px,calc(100vw-3rem))] animate-pop rounded-2xl bg-[linear-gradient(120deg,#1478d0,#1cb0f6)] p-4 text-white shadow-[0_4px_0_#0b4f91]"
+      className="relative mt-16 w-[min(280px,calc(100vw-3rem))] sm:mt-36 animate-pop rounded-2xl bg-[linear-gradient(120deg,#1478d0,#1cb0f6)] p-4 text-white shadow-[0_4px_0_#0b4f91]"
     >
       <span aria-hidden className="absolute -top-2 left-1/2 size-4 -translate-x-1/2 rotate-45 rounded-sm bg-[#1478d0]" />
       <p className="font-extrabold leading-tight">{no.titulo}</p>
-      <p className="text-sm font-semibold text-white/85">{sobre}</p>
+      <p className="text-sm font-semibold text-white/85">Etapa {no.numero} de {unidade.nos.length} · {sobre}</p>
       <Link
         href={no.href!}
         className="mt-3 flex min-h-12 items-center justify-center rounded-xl bg-white text-sm font-extrabold uppercase tracking-wider text-[#1478d0] shadow-[0_4px_0_#9fd6f7] transition-[transform,box-shadow] active:translate-y-1 active:shadow-none"
@@ -269,17 +214,12 @@ function falaPara(no: No, ehAtual: boolean): string {
 /* ───────────── trilha ───────────── */
 
 export function CaminhoTrilha({ estado, modo = "painel" }: { estado: Estado; modo?: "painel" | "completo" }) {
-  const { unidades, proximo } = montarUnidades(estado);
+  const { unidades, proximo, emProducao } = montarUnidades(estado);
   const total = unidades.length;
   const concluidas = unidades.filter((u) => u.status === "concluido").length;
   const fortes = estado.diagnostico ? forcasEAtencao(estado.diagnostico.pontuacoes).forcas : [];
 
-  // No painel: o módulo atual e os 2 seguintes. Na página da trilha: todos.
-  const atualIdx = Math.max(
-    0,
-    unidades.findIndex((u) => u.nos.some((n) => n.situacao === "atual")),
-  );
-  const visiveis = modo === "completo" ? unidades : unidades.slice(atualIdx, atualIdx + 3);
+  const visiveis = unidades;
   const todosPontosFeitos = !proximo;
 
   const raizRef = useRef<HTMLDivElement>(null);
@@ -300,17 +240,12 @@ export function CaminhoTrilha({ estado, modo = "painel" }: { estado: Estado; mod
     if (!ancora) return null;
     const r = raiz.getBoundingClientRect();
     const c = ancora.getBoundingClientRect();
-    const largura = avatarRef.current?.offsetWidth ?? 120;
-    const altura = avatarRef.current?.offsetHeight ?? 160;
-    const meio = c.left - r.left + c.width / 2;
-    const lado = meio < r.width / 2 ? "d" : "e";
-    const x = lado === "d" ? c.right - r.left + 10 : c.left - r.left - 10 - largura;
-    const xFinal = Math.max(0, Math.min(x, r.width - largura));
-    // O balão ocupa [x, x+170] se preso à esquerda do avatar, ou [x+largura-170, x+largura] se preso à direita.
-    const cabeNaDireita = xFinal + LARGURA_BALAO <= r.width;
-    const cabeNaEsquerda = xFinal + largura - LARGURA_BALAO >= 0;
-    const balao = lado === "d" ? (cabeNaDireita ? "esquerda" : "direita") : cabeNaEsquerda ? "direita" : "esquerda";
-    return { x: xFinal, y: c.top - r.top + c.height / 2 - altura * 0.5, lado, balao };
+    // O caminho reserva uma faixa à direita: a Clara nunca troca para a esquerda do botão.
+    const x = c.right - r.left + 12;
+    const balao = x + LARGURA_BALAO <= r.width ? "esquerda" : "direita";
+    // Alinha o rosto abaixo do início do ponto; o balão fica abaixo do cabeçalho do módulo.
+    return { x, y: c.top - r.top + 12, lado: "d", balao };
+
   }, []);
 
   const irPara = useCallback(
@@ -334,6 +269,13 @@ export function CaminhoTrilha({ estado, modo = "painel" }: { estado: Estado; mod
     obs.observe(raiz);
     return () => obs.disconnect();
   }, [medir]);
+
+  // A Clara acompanha o próximo passo quando o progresso muda, inclusive ao trocar de módulo.
+  const proximoId = proximo?.id ?? null;
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => { irPara(proximoId); setFala(null); });
+    return () => cancelAnimationFrame(frame);
+  }, [proximoId, irPara]);
 
   // Na página da trilha, leva a tela até o ponto atual.
   useEffect(() => {
@@ -395,11 +337,9 @@ export function CaminhoTrilha({ estado, modo = "painel" }: { estado: Estado; mod
         </p>
       )}
 
-      <div ref={raizRef} className="relative flex flex-col gap-6">
-        {visiveis.map((u, k) => {
-          const aberta = modo === "completo" || u.nos.some((n) => n.situacao !== "bloqueado") || k === 0;
-          // No painel, módulos futuros mostram só alguns pontos (o resto aparece quando chegar a vez).
-          const nos = aberta ? u.nos : u.nos.slice(0, 3);
+      <div ref={raizRef} className="relative flex flex-col gap-6 [--recuo-etapa:50px] sm:[--recuo-etapa:80px]">
+        {visiveis.map((u) => {
+          const nos = u.nos;
           return (
             <div key={u.modulo.id} className="flex flex-col gap-8">
               <CabecalhoUnidade u={u} total={total} estado={estado} forte={fortes.includes(u.modulo.competencia)} />
@@ -424,7 +364,7 @@ export function CaminhoTrilha({ estado, modo = "painel" }: { estado: Estado; mod
           <div
             ref={avatarRef}
             aria-hidden
-            className="pointer-events-none absolute left-0 top-0 z-20 w-[104px] transition-transform duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] sm:w-[140px]"
+            className="pointer-events-none absolute left-0 top-0 z-20 w-[88px] transition-transform duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] sm:w-[140px]"
             style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
           >
             {falando && (
@@ -458,6 +398,10 @@ export function CaminhoTrilha({ estado, modo = "painel" }: { estado: Estado; mod
         )}
       </div>
 
+      {emProducao.length > 0 && <details className="rounded-2xl border border-line bg-card p-4">
+        <summary className="min-h-10 cursor-pointer text-sm font-bold text-muted">Em produção · próximos temas</summary>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">{emProducao.map((m) => <li key={m.id} className="flex items-center gap-2 rounded-xl bg-sunken p-3 text-sm text-muted"><Hammer aria-hidden className="size-4 shrink-0" />{m.titulo}</li>)}</ul>
+      </details>}
       {todosPontosFeitos && (
         <div className="flex flex-col items-center gap-2 rounded-3xl border-2 border-dashed border-line p-6 text-center">
           <Trophy aria-hidden className="size-10 text-[#f5b301]" />

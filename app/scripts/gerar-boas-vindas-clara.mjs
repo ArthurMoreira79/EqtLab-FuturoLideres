@@ -4,8 +4,21 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-try { process.loadEnvFile(path.join(raiz, ".env.local")); } catch {}
-const destino = path.join(raiz, "public/clara/boas-vindas-cenario.mp4");
+for (const arquivo of [".env.local", ".env"]) {
+  try { process.loadEnvFile(path.join(raiz, arquivo)); } catch {}
+}
+// Qual vídeo gerar: `pnpm clara:video` (boas-vindas, padrão) ou `pnpm clara:video feedback` (módulo de Feedback).
+const VIDEOS = {
+  "boas-vindas": { conteudo: "src/lib/conteudo/boas-vindas.json", mp4: "public/clara/boas-vindas-cenario.mp4", vtt: "public/clara/boas-vindas.vtt" },
+  feedback: { conteudo: "src/lib/conteudo/video-modulo-feedback.json", mp4: "public/clara/modulo-feedback.mp4", vtt: "public/clara/modulo-feedback.vtt" },
+};
+const nome = process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "boas-vindas";
+const alvo = VIDEOS[nome];
+if (!alvo) {
+  console.error(`Vídeo desconhecido: ${nome}. Opções: ${Object.keys(VIDEOS).join(", ")}.`);
+  process.exit(1);
+}
+const destino = path.join(raiz, alvo.mp4);
 const chave = process.env.DID_API_KEY?.trim().replace(/^Basic\s+/i, "");
 if (!chave) {
   console.error("Configure DID_API_KEY em app/.env.local e execute pnpm clara:video novamente. Nenhuma chamada foi feita à D-ID.");
@@ -31,7 +44,7 @@ async function api(caminho, init = {}) {
 }
 
 try {
-  const conteudo = JSON.parse(await readFile(path.join(raiz, "src/lib/conteudo/boas-vindas.json"), "utf8"));
+  const conteudo = JSON.parse(await readFile(path.join(raiz, alvo.conteudo), "utf8"));
   let id = process.env.DID_TALK_ID;
   if (id && !/^tlk_[a-zA-Z0-9_-]+$/.test(id)) throw new Error("DID_TALK_ID inválido.");
   if (!id) {
@@ -59,7 +72,7 @@ try {
     });
     id = criado.id;
     if (!id) throw new Error("A D-ID não retornou o identificador do vídeo.");
-    console.log(`Vídeo solicitado: ${id}. Para retomar sem gerar outro: DID_TALK_ID=${id} pnpm clara:video`);
+    console.log(`Vídeo solicitado: ${id}. Para retomar sem gerar outro: DID_TALK_ID=${id} pnpm clara:video ${nome}`);
   }
   let pronto;
   for (let tentativa = 0; tentativa < 160; tentativa++) {
@@ -68,7 +81,7 @@ try {
     if (["error", "rejected", "failed"].includes(resultado.status)) throw new Error(`A geração terminou com status ${resultado.status}. A imagem ilustrada pode não ter sido aceita.`);
     await new Promise((resolve) => setTimeout(resolve, 3000));
   }
-  if (!pronto) throw new Error(`O vídeo ainda não ficou pronto. Retome com DID_TALK_ID=${id} pnpm clara:video`);
+  if (!pronto) throw new Error(`O vídeo ainda não ficou pronto. Retome com DID_TALK_ID=${id} pnpm clara:video ${nome}`);
   const video = await fetch(pronto.result_url, { signal: AbortSignal.timeout(60_000) });
   if (!video.ok) throw new Error(`Não foi possível baixar o vídeo (${video.status}).`);
   const bytes = Buffer.from(await video.arrayBuffer());
@@ -86,8 +99,8 @@ try {
     inicio = fim;
     return cue;
   });
-  await writeFile(path.join(raiz, "public/clara/boas-vindas.vtt"), `WEBVTT\n\n${legendas.join("\n")}`);
-  console.log("Vídeo e legendas salvos em public/clara/. Abra o dashboard para testar a sincronização facial.");
+  await writeFile(path.join(raiz, alvo.vtt), `WEBVTT\n\n${legendas.join("\n")}`);
+  console.log(`Vídeo e legendas salvos em ${path.dirname(alvo.mp4)}/. Confira a sincronização facial no app.`);
 } catch (erro) {
   console.error(erro instanceof Error ? erro.message : "Falha ao gerar o vídeo.");
   process.exitCode = 1;

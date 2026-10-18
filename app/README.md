@@ -226,3 +226,45 @@ Todas as operações de `/api/rede` exigem a sessão da pessoa autenticada, vali
 | POST | `{ acao: "enviar-mensagem", equipeId, texto }` | Salva mensagem de até 2.000 caracteres no grupo |
 
 Contratos: `src/lib/rede/contratos.ts`. Cliente tipado: `src/lib/rede/cliente.ts`. O teste de integração `node scripts/testar-rede.mjs` (na pasta `app`, com servidor local na porta 3000 e Postgres configurado) cria contas temporárias, testa o isolamento de acesso e apaga apenas os registros da própria execução.
+
+## Módulos com etapas guiadas
+
+As lições de Feedback e Conflitos agora usam a sequência **Aprender → Testar → Aplicar**, com uma lição por tela, cartões curtos e uma situação de escolha com explicação imediata. A lição avança depois de conferir a alternativa adequada; é possível tentar novamente sem perder pontos. O texto completo e os exemplos ficam em “Ver exemplo e aprofundar”. O quiz mostra uma pergunta por vez e só registra o resultado ao finalizar todas. Rever uma lição não concede XP novamente.
+
+O caminho da trilha aponta para a etapa exata (`?etapa=f1`, `?etapa=quiz`, `?etapa=desafio`). As etapas seguintes continuam dependendo da conclusão das anteriores; os registros existentes de lições, quiz e XP são preservados. A prática final mantém a análise e a nota mínima existentes.
+
+Na primeira lição de Feedback, a Clara apresenta o módulo em um vídeo de aproximadamente 49 segundos, com controles, legendas e transcrição opcional. O vídeo foi gerado uma vez pela D-ID com o cenário existente e está salvo em `public/clara/modulo-feedback.mp4`; abrir a aula apenas reproduz o arquivo. A geração mantém a marca-d’água da conta D-ID. As legendas são aproximadas por trecho. O vídeo é complementar: não é necessário assisti-lo até o fim para fazer a atividade.
+
+Conteúdo das interações: `src/lib/conteudo/licoes-guiadas.ts`. Roteiro do vídeo: `src/lib/conteudo/video-modulo-feedback.json`. Para gerar novamente, use `pnpm clara:video feedback --force` (consome créditos); sem `--force`, um arquivo já existente é reutilizado. O comando sem argumento continua sendo o vídeo de boas-vindas. Se for preciso retomar um processamento, use o identificador retornado e mantenha `feedback` no comando para salvar no destino correto.
+
+## Módulos, etapas e Clara
+
+Um tema com conteúdo completo é um **módulo**; as lições, o quiz e o desafio são suas **etapas**. `src/lib/trilha.ts` é a fonte compartilhada de numeração, etapas, links, progresso e próximo passo. Painel, página da Trilha e aula usam esse mesmo modelo. Módulos disponíveis recebem números consecutivos na ordem personalizada; temas em produção ficam em uma lista separada, sem gerar lacunas na numeração. Ambos os caminhos mostram todas as etapas, incluindo as concluídas.
+
+O módulo seguinte só libera depois da conclusão do anterior. Progresso já registrado continua vinculado aos mesmos IDs; ele não é apagado ao reorganizar a apresentação. Depois do desafio aprovado, existe um botão para continuar no próximo módulo. O teste `node scripts/testar-trilha.mjs` valida a sequência, estados legados e numeração.
+
+O botão dourado no canto inferior direito abre o chat da Clara nas páginas internas. No celular, ele fica acima do menu inferior. O histórico fica apenas na memória da página e é isolado por conta. A demonstração e `IA_PROVEDOR=simulado` usam respostas guiadas locais, identificadas como **Modo guiado**. Com `IA_PROVEDOR=compativel-openai`, o chat usa o modelo já configurado pelas variáveis `IA_BASE_URL`, `IA_API_KEY` e `IA_MODELO`; as credenciais ficam no servidor.
+
+`POST /api/clara/chat` exige sessão e origem válida, limita 30 requisições por minuto por conta e valida até oito mensagens recentes de até 800 caracteres. A resposta do modelo também é validada antes de aparecer. O teste `node scripts/testar-chat-clara.mjs` usa uma conta temporária e testa autenticação, entrada inválida, origem e o provedor guiado. Nenhuma chamada de vídeo D-ID é necessária para o chat.
+
+## Contexto e Gemini no chat da Clara
+
+O contexto versionado está em `src/lib/clara/contexto.ts`: identidade, tom, regras da plataforma, limites e conteúdo editorial do módulo aberto. Ele é montado somente no servidor. Não consulta cadastros, equipe, notas ou mensagens da Comunidade. Somente as oito mensagens recentes do chat são enviadas ao provedor; e-mails, CPFs e chaves Google em formato reconhecido são substituídos antes do envio. Isso reduz exposição, mas não garante anonimização: não envie informações pessoais ou confidenciais. O histórico não é salvo no banco.
+
+Em `app/.env.local`, configure `GEMINI_API_KEY` e, opcionalmente, `GEMINI_CHAT_MODEL=gemini-3.8-flash`. A chave nunca usa prefixo `NEXT_PUBLIC_`. Essa configuração afeta somente o chat; avaliações e relatórios continuam com `IA_PROVEDOR`. O endpoint usa a [compatibilidade oficial do Gemini](https://ai.google.dev/gemini-api/docs/openai). O plano gratuito é controlado no projeto Google, não pelo código; a aplicação não ativa faturamento, não troca automaticamente para um modelo pago e informa quando a cota é atingida.
+
+Sem chave/configuração real, o chat identifica o modo guiado. Contas de demonstração continuam locais; para usar Gemini, faça login. `GET /api/clara/chat` informa apenas o modo à conta autenticada, sem expor credenciais. `node scripts/testar-contexto-clara.mjs` verifica o payload externo com um provedor simulado em memória, sem chamadas pagas.
+
+Para desenvolvimento, execute `pnpm dev --port 3000` dentro de `app`. Se a porta estiver ocupada, confira `ss -ltnp | rg ':3000'`: pode já ser este aplicativo rodando em outro terminal. Nesse caso, abra `http://localhost:3000` ou encerre a execução anterior com Ctrl+C antes de iniciar outra. Passar a porta explicitamente evita que o Next selecione 3001 silenciosamente.
+
+## Voz no chat da Clara
+
+O botão de microfone usa `SpeechRecognition` / `webkitSpeechRecognition` em português brasileiro. É uma fala por toque: a transcrição aparece no campo e a frase final é enviada automaticamente ao chat existente. O botão permite encerrar a fala; não há escuta contínua nem reabertura automática do microfone. Falar ativa também a leitura das próximas respostas. Os controles permitem silenciar, interromper e ouvir novamente a última resposta.
+
+A saída usa `speechSynthesis`, preferindo uma voz `pt-BR` instalada no dispositivo. A voz pode variar conforme navegador/sistema; não é a voz gravada dos vídeos D-ID. Não adiciona chamadas a APIs de áudio pagas, mas cada frase enviada usa a mesma cota Gemini do chat de texto. A transcrição pode depender de um serviço remoto do navegador; o aplicativo não grava nem armazena arquivos de áudio. O texto reconhecido segue a filtragem e os limites já existentes no chat.
+
+O microfone depende de navegador compatível, permissão e contexto seguro (`https` ou `localhost`). Sem suporte, a digitação continua disponível. Permissão negada, falta de microfone, rede, silêncio e excesso de 800 caracteres têm mensagens específicas. Fechar o chat ou desmontar o componente cancela a escuta e o áudio, sem enviar resultados tardios. Iniciar outra fala interrompe a leitura para reduzir eco.
+
+`node scripts/testar-voz-clara.mjs` cobre transcrição parcial/final, envio único, cancelamento, erro de permissão, limite e falha ao iniciar, com reconhecimento simulado. Interface também conferida com APIs de voz simuladas no navegador; a captura real e o som devem ser conferidos com microfone e alto-falante no dispositivo do usuário.
+
+O clique no microfone agora solicita explicitamente a permissão nativa com `getUserMedia({ audio: true, video: false })`, mesmo quando falta suporte à transcrição. O stream de verificação é encerrado imediatamente. Durante o pedido, o botão indica que aguarda autorização e evita chamadas duplicadas. Se o chat for fechado enquanto a permissão está pendente, autorizar depois não inicia a escuta. Permissão anteriormente negada exige liberar o microfone nas configurações do site; o aplicativo não pode forçar o navegador a mostrar o pedido novamente.
