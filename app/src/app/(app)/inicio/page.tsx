@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Flame, Plus, RefreshCw, Target, Trophy, Zap } from "lucide-react";
 import { Clara } from "@/components/jogo";
 import { CaminhoTrilha, montarUnidades } from "@/components/painel/CaminhoTrilha";
+import { BoasVindasClara } from "@/components/painel/BoasVindasClara";
 import { Constancia } from "@/components/painel/Constancia";
 import { Radar } from "@/components/Radar";
 import {
@@ -65,6 +66,7 @@ function Painel({ estado }: { estado: Estado }) {
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex min-w-0 flex-col gap-6">
+        <BoasVindasClara key={estado.usuarioId ?? estado.perfil.email ?? "demo"} conta={estado.usuarioId ?? estado.perfil.email ?? "demo"} />
         {/* Saudação */}
         <section
           aria-label="Boas-vindas"

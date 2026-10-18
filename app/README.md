@@ -127,3 +127,17 @@ A fonte das tabelas é [`src/lib/db/schema.ts`](src/lib/db/schema.ts). As migra�
 Relacionamentos: `usuarios` → `sessoes`, `diagnosticos` e `pontuacoes_competencia`; `diagnosticos` → `diagnostico_respostas` e `pontuacoes_competencia`. A chave composta impede respostas duplicadas à mesma pergunta, e cada diagnóstico tem no máximo uma nota por competência. O banco restringe notas a 0–5 e alternativas a índices não negativos; a API valida os IDs e o limite de alternativas de cada pergunta.
 
 O questionário atual tem versão 2. Registros antigos preservam a versão 1 e podem ter os textos históricos nulos. As notas são indicadores das alternativas escolhidas; competências sem evidência nas quatro respostas recebem o valor neutro 2,5. O resultado não representa módulos concluídos: a trilha começa do básico.
+
+## Teste da Clara falando (D-ID)
+
+No primeiro acesso ao dashboard, um modal apresenta a Clara e a plataforma. Fechar, usar Escape ou tocar em “Vamos começar!” registra a apresentação como vista por conta neste navegador, inclusive após sair e entrar. O botão “Boas-vindas da Clara” permite rever. O áudio começa apenas ao tocar em “Ouvir a Clara” e para ao fechar o modal ou sair da página.
+
+Sem vídeo, a prévia usa a voz em português do navegador, se disponível, com a imagem da Clara e animação leve durante a fala. **Essa prévia não tem sincronização labial.**
+
+Para gerar o teste real, configure `DID_API_KEY` em `.env.local` e execute `pnpm clara:video` na pasta `app`. O script envia a cena horizontal `public/clara/boas-vindas-cenario.png` para a D-ID, solicita a narração com `pt-BR-FranciscaNeural`, acompanha a geração e baixa o MP4 e legendas aproximadas para `public/clara/boas-vindas-cenario.mp4` e `public/clara/boas-vindas.vtt`. Confira visualmente o resultado: a detecção facial pode não funcionar bem com personagens ilustrados. A credencial fica apenas no script local; o navegador nunca recebe a chave.
+
+O texto está em `src/lib/conteudo/boas-vindas.json`. Cada geração usa créditos da conta D-ID; acessar o dashboard apenas reproduz o arquivo pronto. Se o vídeo já existir, o script não gera outro sem `--force`. Se a geração demorar, use o `DID_TALK_ID` exibido para retomar sem nova solicitação. O vídeo é baixado porque a URL de resultado da D-ID é temporária. As legendas são estimadas por trecho e devem ser revisadas antes de publicar.
+
+Referências: [Photo Avatars](https://docs.d-id.com/docs/v2-photo-avatar-quickstart), [upload de imagem](https://docs.d-id.com/reference/upload-an-image).
+
+A versão com cenário usa `config.stitch: true` para preservar o enquadramento da imagem, com o rosto animado sobre corpo e ambiente. O modal mostra o vídeo em 16:9 sem cortar a imagem. Corpo e cenário são estáticos; a animação continua sendo facial. A versão anterior fica preservada em `public/clara/boas-vindas.mp4`, e a API prefere a versão com cenário quando ela existe. A imagem foi criada com a ferramenta image_gen integrada; o prompt está em `scripts/clara-cenario-prompt.md`.
