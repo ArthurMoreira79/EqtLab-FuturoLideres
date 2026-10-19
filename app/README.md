@@ -131,7 +131,21 @@ O que já vai para o **PostgreSQL** (tabelas criadas sozinhas na primeira requis
 npm run dev     # desenvolvimento
 npm run build   # build de produção
 npm run lint    # ESLint (inclui regras do React Compiler)
+pnpm db:seed    # aplica as migrações e cria as contas iniciais (veja abaixo)
 ```
+
+### Contas iniciais (`pnpm db:seed`)
+
+O script `scripts/seed.mjs` funciona num banco vazio (aplica as migrações antes) e pode rodar quantas vezes quiser: não duplica contas nem troca senha.
+
+| Onde | O que cria |
+|---|---|
+| **Desenvolvimento** (padrão) | `admin@teste.com` (admin) e `jogador@teste.com` (membro), ambos com a senha de teste `Teste1234`. |
+| **Produção** (`NODE_ENV=production`) | **Nunca** cria as contas de teste (a senha delas é pública). Exige `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` (12+ caracteres, com letras e números) e cria só esse admin. `SEED_ADMIN_NAME` é opcional. |
+
+Outras opções: `pnpm db:seed -- --promover pessoa@empresa.com` transforma uma conta que já existe em admin (ela precisa ter se cadastrado antes), e `--resetar-senha` também troca a senha das contas informadas. As contas criadas pelo seed passam pelo diagnóstico rápido no primeiro login.
+
+**No Railway:** defina `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD` nas variáveis do serviço e rode `railway run pnpm db:seed` (ou configure `pnpm db:seed` como comando de pré-deploy). Depois de entrar, troque a senha, e pode apagar essas duas variáveis.
 
 ## Controle do schema com Drizzle
 

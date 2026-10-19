@@ -11,6 +11,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:check": "drizzle-kit check",
+    "db:seed": "node scripts/seed.mjs",
     "clara:video": "node scripts/gerar-boas-vindas-clara.mjs"
   },
   "dependencies": {
