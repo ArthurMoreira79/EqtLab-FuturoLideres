@@ -121,7 +121,7 @@ function TelaPerfil({ estado }: { estado: Estado }) {
   async function baixarAvatar() {
     setAviso(null);
     try {
-      const como = await exportarAvatarPng(avatar, "avatar-futuro-lideres");
+      const como = await exportarAvatarPng(avatar, "avatar-conecta-lideres");
       setAviso(como === "baixado" ? "Imagem do avatar baixada. Use como foto de perfil onde quiser!" : null);
     } catch {
       setAviso("Não foi possível gerar a imagem agora.");

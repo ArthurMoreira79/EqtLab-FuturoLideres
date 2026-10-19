@@ -48,11 +48,24 @@ const CHAVE = "futuro-lideres:v1";
 const ouvintes = new Set<() => void>();
 let cache: Estado | null | undefined;
 
+/** Quem já tinha uma nota salva que hoje basta para passar não precisa refazer o desafio. */
+function aprovarNotasSalvas(e: Estado): Estado {
+  let mudou = false;
+  const progresso = Object.fromEntries(
+    Object.entries(e.progresso ?? {}).map(([id, p]) => {
+      if (p.concluido || p.desafioNota === undefined || p.desafioNota < NOTA_MINIMA) return [id, p];
+      mudou = true;
+      return [id, { ...p, concluido: true }];
+    }),
+  );
+  return mudou ? { ...e, progresso } : e;
+}
+
 function ler(): Estado | null {
   if (cache === undefined) {
     try {
       const texto = localStorage.getItem(CHAVE);
-      cache = texto ? (JSON.parse(texto) as Estado) : null;
+      cache = texto ? aprovarNotasSalvas(JSON.parse(texto) as Estado) : null;
     } catch {
       cache = null;
     }
@@ -324,7 +337,12 @@ export const acoes = {
   },
 };
 
-export const NOTA_MINIMA = 7;
+/**
+ * Nota do desafio para concluir o módulo e liberar o próximo. Está baixa de propósito (demonstração):
+ * com o avaliador simulado, uma resposta de 10 palavras (o mínimo) já tira cerca de 3 e passa.
+ * Respostas sem sentido continuam barradas pelo mínimo de palavras e, com IA real, por notas abaixo disso.
+ */
+export const NOTA_MINIMA = 3;
 
 /* ---------------- derivados ---------------- */
 

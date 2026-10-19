@@ -1,4 +1,4 @@
-# Futuro Líderes · EQT Lab
+# Conecta Líderes · EQT Lab
 
 Desafio 6 do Hackathon Equatorial — plataforma de desenvolvimento para líderes recém-promovidos.
 

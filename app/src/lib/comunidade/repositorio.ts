@@ -54,7 +54,7 @@ function seed(): PostForum[] {
       respostas: [
         {
           id: "r3",
-          autor: "Assistente Futuro Líderes",
+          autor: "Assistente Conecta Líderes",
           isIA: true,
           corpo:
             "Quando o conflito já afeta o trabalho, vale intervir. Converse com cada um em separado antes de reunir os dois, e comece a conversa conjunta pelo objetivo comum: escala completa e segura.",

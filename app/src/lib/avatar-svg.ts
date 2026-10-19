@@ -44,7 +44,7 @@ export async function exportarAvatarPng(a: AvatarConfig, nome: string): Promise<
 
   if (navigator.canShare?.({ files: [arquivo] })) {
     try {
-      await navigator.share({ files: [arquivo], title: "Meu avatar no Futuro Líderes" });
+      await navigator.share({ files: [arquivo], title: "Meu avatar no Conecta Líderes" });
       return "compartilhado";
     } catch {
       /* cancelou o compartilhamento: cai no download */

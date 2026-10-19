@@ -5,6 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { CircleHelp, Home, Route, Target, UserRound, Users } from "lucide-react";
 import { nivelXP, proximaTela, useEstado } from "@/lib/estado";
+import { GanhoXpProvider, useCalcularGanho } from "@/lib/ganho-xp";
+import { AvatarMini } from "./painel/AvatarMini";
+import { FestaDeXp } from "./painel/FestaDeXp";
 import { ChatClara } from "./ChatClara";
 import { BotaoSair } from "./BotaoSair";
 import { BOTAO_3D_PEQUENO, LogoMarca } from "./jogo";
@@ -24,6 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const estado = useEstado();
   const router = useRouter();
   const caminho = usePathname();
+  const ganho = useCalcularGanho(estado?.xp, estado?.usuarioId);
 
   useEffect(() => {
     // Quem chega pelo QR code de uma sala sem estar logado entra e volta para a sala.
@@ -44,7 +48,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { nivel, noNivel, paraProximo } = nivelXP(estado.xp);
 
   return (
+    <GanhoXpProvider value={ganho}>
     <div className="flex min-h-dvh flex-wrap bg-bg">
+      <FestaDeXp ganho={ganho} estado={estado} />
       <a
         href="#conteudo"
         className="sr-only z-50 rounded-lg bg-ciano px-4 py-2 font-semibold text-noite focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
@@ -57,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         aria-label="Principal"
         className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r-2 border-line bg-card px-4 py-6 lg:flex"
       >
-        <Link href="/inicio" className="flex flex-col gap-2 px-2" aria-label="Futuro Líderes · início">
+        <Link href="/inicio" className="flex flex-col gap-2 px-2" aria-label="Conecta Líderes · início">
           <LogoMarca largura={120} />
           <NomeProduto className="text-[24px] text-[#1478d0] dark:text-ciano" />
         </Link>
@@ -83,13 +89,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </ul>
 
         <div className="mt-auto flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5 rounded-2xl border-2 border-line bg-sunken p-4">
-            <span className="text-sm font-extrabold text-link">Nível {nivel}</span>
-            <Barra valor={noNivel / paraProximo} className="!bg-line" />
-            <span className="text-sm text-muted">
-              {estado.xp.toLocaleString("pt-BR")} XP · faltam {paraProximo - noNivel}
+          <Link
+            href="/perfil"
+            aria-label={`Seu perfil. Nível ${nivel}`}
+            className="group flex items-center gap-3 rounded-2xl border-2 border-line bg-sunken p-3.5 transition-transform hover:-translate-y-0.5"
+          >
+            <span className="motion-safe:group-hover:animate-abanar">
+              <AvatarMini estado={estado} tamanho={52} />
             </span>
-          </div>
+            <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <span className="text-sm font-extrabold text-link">Nível {nivel}</span>
+              <Barra valor={noNivel / paraProximo} className="!bg-line" />
+              <span className="text-xs text-muted">
+                {estado.xp.toLocaleString("pt-BR")} XP · faltam {paraProximo - noNivel}
+              </span>
+            </span>
+          </Link>
           <Link
             href="/bem-vindo"
             className="flex min-h-11 items-center gap-2.5 rounded-xl px-3 text-sm font-bold text-muted hover:bg-sunken"
@@ -106,10 +121,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topo (celular) */}
         <header className="flex items-center justify-between gap-2 border-b-2 border-line bg-card px-4 py-3 lg:hidden">
-          <Link href="/inicio" aria-label="Futuro Líderes · início" className="flex items-center gap-3">
+          <Link href="/inicio" aria-label="Conecta Líderes · início" className="flex items-center gap-3">
             <LogoMarca largura={84} />
           </Link>
           <div className="flex items-center gap-1">
+            <Link href="/perfil" aria-label={`Seu perfil. Nível ${nivel}`} className="mr-1 inline-flex active:scale-95">
+              <AvatarMini estado={estado} tamanho={40} />
+            </Link>
             <Link
               href="/bem-vindo"
               aria-label="Como funciona"
@@ -149,5 +167,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <ChatClara key={estado.usuarioId ?? estado.perfil.email ?? "demo"} usuarioId={estado.usuarioId} />
     </div>
+    </GanhoXpProvider>
   );
 }

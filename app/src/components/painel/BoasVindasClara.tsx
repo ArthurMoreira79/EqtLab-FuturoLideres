@@ -112,7 +112,7 @@ export function BoasVindasClara({ conta }: { conta: string }) {
             <video ref={video} src={videoUrl} poster="/clara/boas-vindas-cenario.png" controls playsInline preload="metadata"
               onPlay={() => setFalando(true)} onPause={() => setFalando(false)} onEnded={() => setFalando(false)}
               onError={() => { setVideoUrl(null); setFalando(false); setErro("O vídeo não carregou. Use Ouvir a Clara para escutar a prévia."); }}
-              className="mx-auto mt-4 aspect-video w-full rounded-t-2xl bg-[#0d3171] object-contain" aria-label="Clara apresenta o Futuro Líderes">
+              className="mx-auto mt-4 aspect-video w-full rounded-t-2xl bg-[#0d3171] object-contain" aria-label="Clara apresenta o Conecta Líderes">
               <track kind="captions" src="/clara/boas-vindas.vtt" srcLang="pt-BR" label="Português" default />
             </video>
           ) : (

@@ -1,4 +1,4 @@
-# Futuro Líderes · EQT Lab
+# Conecta Líderes · EQT Lab
 
 Plataforma de desenvolvimento para líderes recém-promovidos (Desafio 6 do Hackathon Equatorial).
 Especificação completa: [`../prompt-futuros-lideres.md`](../prompt-futuros-lideres.md).
@@ -36,6 +36,13 @@ Stack: Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Ta
 | Perfil | `/perfil` | Estilo Duolingo: avatar (editável, masculino/feminino), estatísticas com XP, conquistas com níveis e histórico. Gráficos de evolução ficam recolhidos |
 
 Tema claro/escuro (paleta Equatorial), mobile-first (navegação inferior no celular, menu lateral no desktop).
+
+## Página inicial
+
+`src/app/page.tsx` (hero, jornada, sequência/nível, pilares) + `src/components/landing/`:
+- `Secoes.tsx`: barra de progresso da rolagem, faixa de recursos que rola sem parar, a frase “Não treinamos apenas líderes. Mostramos a rotina de liderança.”, linha do tempo “um dia de quem lidera” e números com contagem animada.
+- `Recursos.tsx`: um bloco para cada recurso (IA integrada, reuniões da área, comunidade por área, rede de equipes, sala de jogos e avatar), cada um com uma prévia animada. A comunidade reaproveita os escudos reais da Comunidade; o avatar carrega a biblioteca de desenho só quando aparece na tela.
+- As animações ao rolar usam o `Revelar` (`components/animacoes.tsx`) e respeitam “reduzir movimento”.
 
 ## Arquitetura
 
@@ -231,11 +238,13 @@ Contratos: `src/lib/rede/contratos.ts`. Cliente tipado: `src/lib/rede/cliente.ts
 
 As lições de Feedback e Conflitos agora usam a sequência **Aprender → Testar → Aplicar**, com uma lição por tela, cartões curtos e uma situação de escolha com explicação imediata. A lição avança depois de conferir a alternativa adequada; é possível tentar novamente sem perder pontos. O texto completo e os exemplos ficam em “Ver exemplo e aprofundar”. O quiz mostra uma pergunta por vez e só registra o resultado ao finalizar todas. Rever uma lição não concede XP novamente.
 
-O caminho da trilha aponta para a etapa exata (`?etapa=f1`, `?etapa=quiz`, `?etapa=desafio`). As etapas seguintes continuam dependendo da conclusão das anteriores; os registros existentes de lições, quiz e XP são preservados. A prática final mantém a análise e a nota mínima existentes.
+O caminho da trilha aponta para a etapa exata (`?etapa=f1`, `?etapa=quiz`, `?etapa=desafio`). As etapas seguintes continuam dependendo da conclusão das anteriores; os registros existentes de lições, quiz e XP são preservados. A prática final mantém a análise e a nota mínima (hoje 3, de propósito, para demonstração: uma resposta de 10 palavras já passa; veja `NOTA_MINIMA` em `src/lib/estado.ts`).
 
 Na primeira lição de Feedback, a Clara apresenta o módulo em um vídeo de aproximadamente 49 segundos, com controles, legendas e transcrição opcional. O vídeo foi gerado uma vez pela D-ID com o cenário existente e está salvo em `public/clara/modulo-feedback.mp4`; abrir a aula apenas reproduz o arquivo. A geração mantém a marca-d’água da conta D-ID. As legendas são aproximadas por trecho. O vídeo é complementar: não é necessário assisti-lo até o fim para fazer a atividade.
 
-Conteúdo das interações: `src/lib/conteudo/licoes-guiadas.ts`. Roteiro do vídeo: `src/lib/conteudo/video-modulo-feedback.json`. Para gerar novamente, use `pnpm clara:video feedback --force` (consome créditos); sem `--force`, um arquivo já existente é reutilizado. O comando sem argumento continua sendo o vídeo de boas-vindas. Se for preciso retomar um processamento, use o identificador retornado e mantenha `feedback` no comando para salvar no destino correto.
+**Módulo 2 (Conflitos):** as lições guiadas já existem (`c1` a `c4`) e o roteiro do vídeo está em `src/lib/conteudo/video-modulo-conflitos.json`. O vídeo ainda **não foi gerado**: a D-ID respondeu 402 (sem créditos). Enquanto o arquivo `public/clara/modulo-conflitos.mp4` não existe, a aula mostra “A aula em vídeo está sendo preparada” e a transcrição. Com créditos, rode `pnpm clara:video conflitos`. Cada módulo novo precisa do roteiro em JSON, de uma entrada no script e de uma linha em `src/lib/conteudo/videos-modulo.ts` (a rota `/api/clara/modulo/<id>` só aceita módulos cadastrados ali).
+
+Conteúdo das interações: `src/lib/conteudo/licoes-guiadas.ts`. Roteiro do vídeo de Feedback: `src/lib/conteudo/video-modulo-feedback.json`. Para gerar novamente, use `pnpm clara:video feedback --force` (consome créditos); sem `--force`, um arquivo já existente é reutilizado. O comando sem argumento continua sendo o vídeo de boas-vindas. Se for preciso retomar um processamento, use o identificador retornado e mantenha `feedback` no comando para salvar no destino correto.
 
 ## Módulos, etapas e Clara
 

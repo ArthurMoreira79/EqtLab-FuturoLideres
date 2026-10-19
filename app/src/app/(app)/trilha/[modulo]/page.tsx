@@ -7,7 +7,8 @@ import { ArrowLeft, BookOpen, Check, Lock, Target, Trophy } from "lucide-react";
 import { RespostaDesafio } from "@/components/RespostaDesafio";
 import { LicaoInterativa } from "@/components/trilha/LicaoInterativa";
 import { QuizInterativo } from "@/components/trilha/QuizInterativo";
-import { VideoFeedback } from "@/components/trilha/VideoFeedback";
+import { VideoModulo } from "@/components/trilha/VideoModulo";
+import { VIDEOS_MODULO } from "@/lib/conteudo/videos-modulo";
 import { Aviso, Barra, Carregando, TituloPagina, botao, cx } from "@/components/ui";
 import { api } from "@/lib/api";
 import { obterModulo, temConteudo } from "@/lib/conteudo/modulos";
@@ -85,7 +86,7 @@ function ConteudoModulo({ estado, modulo }: { estado: Estado; modulo: Modulo }) 
           {feita ? <Check aria-hidden className="size-4" /> : i + 1}
         </button>;
       })}</nav></div>
-      {modulo.id === "feedback" && indice === 0 && <VideoFeedback />}
+      {VIDEOS_MODULO[modulo.id] && indice === 0 && <VideoModulo moduloId={modulo.id} />}
       <LicaoInterativa key={licao.id} licao={licao} feita={!!prog?.licoesFeitas.includes(licao.id)} aoConcluir={() => {
         acoes.marcarLicao(modulo.id, licao.id);
         ir(modulo.licoes[indice + 1]?.id ?? "quiz");

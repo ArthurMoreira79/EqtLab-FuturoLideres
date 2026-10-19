@@ -10,7 +10,7 @@ import "@fontsource/saira/800-italic.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Futuro Líderes · EQT Lab",
+  title: "Conecta Líderes · EQT Lab",
   description:
     "Plataforma de desenvolvimento para líderes recém-promovidos: missões diárias, trilha de aprendizado e feedback com IA.",
 };

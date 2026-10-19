@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Flame, Plus, RefreshCw, Target, Trophy, Zap } from "lucide-react";
+import { ArrowRight, Flame, Plus, RefreshCw, Target, Zap } from "lucide-react";
 import { MinhaEquipe } from "@/components/rede/MinhaEquipe";
 import { Clara } from "@/components/jogo";
 import { CaminhoTrilha } from "@/components/painel/CaminhoTrilha";
 import { BoasVindasClara } from "@/components/painel/BoasVindasClara";
+import { ChipNivel } from "@/components/painel/AvatarMini";
 import { Constancia } from "@/components/painel/Constancia";
 import { Radar } from "@/components/Radar";
 import {
@@ -24,7 +25,8 @@ import {
 import { montarUnidades } from "@/lib/trilha";
 import { api } from "@/lib/api";
 import { competencia, forcasEAtencao } from "@/lib/competencias";
-import { acoes, diasDesde, hoje, nivelXP, useEstado, type Estado } from "@/lib/estado";
+import { acoes, diasDesde, hoje, useEstado, type Estado } from "@/lib/estado";
+import { useGanhoXp } from "@/lib/ganho-xp";
 import { useMissaoDoDia } from "@/lib/missao/useMissaoDoDia";
 import type { PostForum } from "@/lib/types";
 
@@ -40,21 +42,20 @@ function saudacao() {
 }
 
 function Pilulas({ estado }: { estado: Estado }) {
-  const { nivel } = nivelXP(estado.xp);
+  const ganho = useGanhoXp();
   const base = "inline-flex items-center gap-2 rounded-2xl border-2 border-line bg-card px-3.5 py-2 text-sm font-extrabold shadow-[0_3px_0_var(--line)]";
   return (
-    <ul className="flex flex-wrap gap-2.5" aria-label="Seus números">
+    <ul className="flex flex-wrap items-center gap-2.5" aria-label="Seus números">
       <li className={base}>
         <Flame aria-hidden className="size-5 origin-bottom animate-chama text-[#ff8a00]" fill="currentColor" />
         {estado.sequencia.dias} {estado.sequencia.dias === 1 ? "dia" : "dias"}
       </li>
-      <li className={base}>
-        <Zap aria-hidden className="size-5 text-[#f5b301]" fill="currentColor" />
+      <li key={ganho?.id ?? 0} className={cx(base, ganho && "motion-safe:animate-pop border-[#f5b301]")}>
+        <Zap aria-hidden className={cx("size-5 text-[#f5b301]", ganho && "motion-safe:animate-faiscar")} fill="currentColor" />
         {estado.xp.toLocaleString("pt-BR")} XP
       </li>
-      <li className={base}>
-        <Trophy aria-hidden className="size-5 text-[#1b8fe6]" />
-        Nível {nivel}
+      <li>
+        <ChipNivel estado={estado} />
       </li>
     </ul>
   );
@@ -76,7 +77,7 @@ function Painel({ estado }: { estado: Estado }) {
         >
           <span aria-hidden className="absolute -right-10 -top-16 -z-10 size-64 rounded-full bg-white/15" />
           <span aria-hidden className="absolute -bottom-24 right-24 -z-10 size-56 rounded-full bg-white/10" />
-          <div className="flex max-w-md flex-col gap-3 pr-0 sm:pr-40">
+          <div className="flex max-w-md flex-col gap-3 pr-24 sm:pr-40">
             <span className="text-sm font-bold text-white/85 first-letter:uppercase">{dataExtensa}</span>
             <h1 className="font-display text-3xl font-extrabold italic sm:text-4xl">
               {saudacao()}, {perfil.nome.split(" ")[0]}!
@@ -93,7 +94,8 @@ function Painel({ estado }: { estado: Estado }) {
               </Link>
             )}
           </div>
-          <Clara pose="acenando" largura={150} className="pointer-events-none absolute -bottom-3 right-4 hidden sm:block" />
+          {/* No celular ela fica menor (escala a partir do canto) e o texto reserva o espaço dela; no desktop não muda. */}
+          <Clara pose="acenando" largura={150} className="pointer-events-none absolute -bottom-3 right-4 origin-bottom-right scale-[0.55] sm:scale-100" />
         </section>
 
         <div className="xl:hidden">

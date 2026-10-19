@@ -1,7 +1,9 @@
 "use client";
 
-import { Flame, Trophy, Zap } from "lucide-react";
-import { Card, TituloSecao } from "@/components/ui";
+import { Flame, Zap } from "lucide-react";
+import { ChipNivel } from "@/components/painel/AvatarMini";
+import { Card, TituloSecao, cx } from "@/components/ui";
+import { useGanhoXp } from "@/lib/ganho-xp";
 import { XP, nivelXP, type Estado } from "@/lib/estado";
 
 const FORMAS_DE_GANHAR: { rotulo: string; xp: number }[] = [
@@ -13,24 +15,24 @@ const FORMAS_DE_GANHAR: { rotulo: string; xp: number }[] = [
 
 /** Coluna ao lado da Comunidade: o XP de quem está logado (no lugar do “status” do Duolingo). */
 export function PainelXp({ estado }: { estado: Estado }) {
+  const ganho = useGanhoXp();
   const { nivel, noNivel, paraProximo } = nivelXP(estado.xp);
   const pct = Math.round((noNivel / paraProximo) * 100);
   const base = "inline-flex items-center gap-2 rounded-2xl border-2 border-line bg-card px-3.5 py-2 text-sm font-extrabold shadow-[0_3px_0_var(--line)]";
 
   return (
     <div className="flex flex-col gap-6">
-      <ul className="flex flex-wrap gap-2.5" aria-label="Seus números">
+      <ul className="flex flex-wrap items-center gap-2.5" aria-label="Seus números">
         <li className={base}>
           <Flame aria-hidden className="size-5 origin-bottom animate-chama text-[#ff8a00]" fill="currentColor" />
           {estado.sequencia.dias} {estado.sequencia.dias === 1 ? "dia" : "dias"}
         </li>
-        <li className={base}>
+        <li key={ganho?.id ?? 0} className={cx(base, ganho && "motion-safe:animate-pop border-[#f5b301]")}>
           <Zap aria-hidden className="size-5 text-[#f5b301]" fill="currentColor" />
           {estado.xp.toLocaleString("pt-BR")} XP
         </li>
-        <li className={base}>
-          <Trophy aria-hidden className="size-5 text-[#1b8fe6]" />
-          Nível {nivel}
+        <li>
+          <ChipNivel estado={estado} />
         </li>
       </ul>
 

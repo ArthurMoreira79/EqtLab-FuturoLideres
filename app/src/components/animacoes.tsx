@@ -78,7 +78,7 @@ export function Abertura() {
         </div>
         <div className="flex flex-col items-center gap-2">
           <Image src="/eqt-lab-logo.png" alt="EQT Lab by Equatorial" width={364} height={90} priority style={{ width: 140, height: "auto" }} />
-          <span className="font-display text-2xl font-extrabold italic text-ciano">Futuro Líderes</span>
+          <span className="font-display text-2xl font-extrabold italic text-ciano">Conecta Líderes</span>
         </div>
         <div className="flex w-full flex-col gap-2">
           <div className="h-4 overflow-hidden rounded-full bg-white/15">

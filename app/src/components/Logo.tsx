@@ -14,5 +14,5 @@ export function LogoEQT({ largura = 132 }: { largura?: number }) {
 }
 
 export function NomeProduto({ className = "text-2xl" }: { className?: string }) {
-  return <span className={`font-display font-extrabold italic leading-none ${className}`}>Futuro Líderes</span>;
+  return <span className={`font-display font-extrabold italic leading-none ${className}`}>Conecta Líderes</span>;
 }

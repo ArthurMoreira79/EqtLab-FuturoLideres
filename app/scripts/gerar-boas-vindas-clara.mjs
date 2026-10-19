@@ -7,10 +7,11 @@ const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 for (const arquivo of [".env.local", ".env"]) {
   try { process.loadEnvFile(path.join(raiz, arquivo)); } catch {}
 }
-// Qual vídeo gerar: `pnpm clara:video` (boas-vindas, padrão) ou `pnpm clara:video feedback` (módulo de Feedback).
+// Qual vídeo gerar: `pnpm clara:video` (boas-vindas, padrão) ou `pnpm clara:video feedback` ou `conflitos` (vídeo do módulo).
 const VIDEOS = {
   "boas-vindas": { conteudo: "src/lib/conteudo/boas-vindas.json", mp4: "public/clara/boas-vindas-cenario.mp4", vtt: "public/clara/boas-vindas.vtt" },
   feedback: { conteudo: "src/lib/conteudo/video-modulo-feedback.json", mp4: "public/clara/modulo-feedback.mp4", vtt: "public/clara/modulo-feedback.vtt" },
+  conflitos: { conteudo: "src/lib/conteudo/video-modulo-conflitos.json", mp4: "public/clara/modulo-conflitos.mp4", vtt: "public/clara/modulo-conflitos.vtt" },
 };
 const nome = process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "boas-vindas";
 const alvo = VIDEOS[nome];

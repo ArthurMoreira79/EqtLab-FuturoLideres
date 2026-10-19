@@ -9,6 +9,8 @@ import type { LucideIcon } from "lucide-react";
 import { Abertura, RaiosDeFundo, Revelar, usePose } from "@/components/animacoes";
 import type { Pose } from "@/components/animacoes";
 import { BOTAO_3D, BOTAO_3D_CLARO_PEQUENO, CARTAO_JOGO, ClaraClassica, LINK_TEXTO, LogoMarca, Nuvens } from "@/components/jogo";
+import { Recursos } from "@/components/landing/Recursos";
+import { BarraDeRolagem, FaixaDeRecursos, FraseDestaque, Numeros, RotinaDoLider } from "@/components/landing/Secoes";
 import { TemaToggle } from "@/components/TemaToggle";
 import { cx } from "@/components/ui";
 import { competencia } from "@/lib/competencias";
@@ -129,6 +131,7 @@ export default function Boasvindas() {
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-white text-heading dark:bg-bg">
       <Abertura />
+      <BarraDeRolagem />
 
       {/* Abertura: céu, mascote saindo das nuvens */}
       <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#dff3ff] via-[#eef9ff] to-white dark:from-[#11144a] dark:via-[#0f1240] dark:to-bg">
@@ -155,7 +158,7 @@ export default function Boasvindas() {
             <div className="flex flex-col gap-3">
               <span className={cx("font-display text-2xl font-extrabold italic text-[#1b8fe6] dark:text-ciano", "entra")} style={atraso(100)}>
                 <Zap aria-hidden className="mr-1 inline size-6 -translate-y-0.5 animate-faiscar fill-[#ffd23f] text-[#ff9f1c]" />
-                Futuro Líderes
+                Conecta Líderes
               </span>
               <h1 className={cx("text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl", "entra")} style={atraso(200)}>
                 Vire o líder em quem a sua equipe confia
@@ -163,7 +166,7 @@ export default function Boasvindas() {
             </div>
             <p className={cx("max-w-xl text-lg leading-relaxed text-muted", "entra")} style={atraso(320)}>
               Você foi promovido por ser bom no que faz. Agora, treine liderança como um jogo: missões curtas todo dia,
-              feedback imediato da IA e uma evolução que dá para ver.
+              uma mentora com IA, comunidade e reuniões por área, rede de equipes, salas de jogo ao vivo e um avatar só seu.
             </p>
             <div className={cx("flex w-full max-w-sm flex-col items-center gap-5 lg:items-start", "entra")} style={atraso(440)}>
               <Link href={destino} className={cx(buttonVariants({ variant: "primary", size: "lg" }), BOTAO_3D, "sm:w-full")}>
@@ -201,7 +204,13 @@ export default function Boasvindas() {
         </div>
       </section>
 
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-16 px-5 pb-20 pt-10 sm:px-8">
+      <FaixaDeRecursos />
+      <FraseDestaque />
+
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-20 px-5 pb-20 pt-16 sm:gap-28 sm:px-8">
+        <RotinaDoLider />
+        <Recursos />
+
         {/* Jornada */}
         <section aria-labelledby="titulo-jornada" className="flex flex-col items-center gap-8">
           <Revelar className="flex flex-col gap-2 text-center">
@@ -335,6 +344,8 @@ export default function Boasvindas() {
             </Revelar>
           ))}
         </ul>
+
+        <Numeros />
 
         <Revelar className="flex flex-col items-center gap-4 text-center">
           <h2 className="text-2xl font-extrabold">Pronto para a primeira fase?</h2>

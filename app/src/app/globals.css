@@ -149,6 +149,10 @@
   --animate-crescer: crescer 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.08) both;
   --animate-brilhar: brilhar 1.6s ease-in-out infinite;
   --animate-tique: tique 1s ease-out both;
+  --animate-xp-subir: xp-subir 2.4s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-digitando: digitando 1.7s ease both;
+  --animate-coluna: coluna 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
 
   @keyframes faiscar {
     0%, 100% { opacity: 0.35; transform: scale(0.8) rotate(-8deg); }
@@ -218,6 +222,27 @@
   @keyframes brilhar {
     0%, 100% { filter: drop-shadow(0 0 6px rgb(255 200 40 / 0.5)); transform: scale(1); }
     50% { filter: drop-shadow(0 0 18px rgb(255 200 40 / 0.95)); transform: scale(1.06); }
+  }
+  /* “+XP” que entra pulando, fica um instante e sobe sumindo. */
+  @keyframes xp-subir {
+    0% { opacity: 0; transform: translateY(14px) scale(0.7); }
+    14% { opacity: 1; transform: translateY(0) scale(1.08); }
+    24% { transform: translateY(0) scale(1); }
+    78% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-26px) scale(0.95); }
+  }
+  /* Landing: faixa que rola sem parar, “digitando…” que some quando a resposta chega e colunas do pódio. */
+  @keyframes marquee {
+    to { transform: translateX(-50%); }
+  }
+  @keyframes digitando {
+    0% { opacity: 0; max-height: 0; }
+    10%, 82% { opacity: 1; max-height: 56px; }
+    100% { opacity: 0; max-height: 0; margin: 0; padding-block: 0; }
+  }
+  @keyframes coluna {
+    from { opacity: 0; transform: scaleY(0); }
+    to { opacity: 1; transform: scaleY(1); }
   }
   @keyframes tique {
     0% { opacity: 0; transform: scale(2.2); }

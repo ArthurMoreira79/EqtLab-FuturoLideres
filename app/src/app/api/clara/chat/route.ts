@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       if (e instanceof ErroProvedorIA) {
         if (e.status === 429) return respostaErro(429, "A cota de uso da IA foi atingida. Aguarde e tente novamente; nenhuma cobrança foi ativada pelo aplicativo.");
         if (e.status === 401 || e.status === 403) return respostaErro(503, "A chave da IA está inválida ou sem acesso. Confira a configuração no servidor.");
+        if (e.status === 503) return respostaErro(503, "A IA está com muita procura agora. Tente novamente em instantes.");
         return respostaErro(502, "O serviço de IA está indisponível agora. Tente novamente em instantes.");
       }
       if (e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError")) return respostaErro(504, "A IA demorou para responder. Tente novamente.");
