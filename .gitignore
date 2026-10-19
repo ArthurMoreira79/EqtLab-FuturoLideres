@@ -4,4 +4,7 @@
 .DS_Store
 Thumbs.db
 
-# O site tem o próprio .gitignore (node_modules, .next, .env*...) em site/
+# Variáveis do docker-compose (o modelo versionado é .env.example)
+.env
+
+# O app tem o próprio .gitignore (node_modules, .next, .env*...) em app/
